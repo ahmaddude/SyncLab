@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
-import api from '../utils/api';
 
 const SocketContext = createContext(null);
+
+const SOCKET_URL = 'http://localhost:5000';
 
 export function SocketProvider({ children }) {
   const { user } = useAuth();
@@ -22,36 +23,34 @@ export function SocketProvider({ children }) {
       return;
     }
 
-    const connectSocket = async () => {
-      try {
-        const data = await api.get('/auth/me');
+    const token = localStorage.getItem('accessToken');
 
-        const s = io('/', {
-          auth: { token: api.accessToken },
-          withCredentials: true,
-        });
+    const s = io(SOCKET_URL, {
+      auth: { token },
+      withCredentials: true,
+    });
 
-        s.on('connect', () => {
-          setConnected(true);
-        });
+    s.on('connect', () => {
+      setConnected(true);
+    });
 
-        s.on('disconnect', () => {
-          setConnected(false);
-        });
+    s.on('disconnect', () => {
+      setConnected(false);
+    });
 
-        socketRef.current = s;
-        setSocket(s);
-      } catch (err) {
-        console.error('Socket connection failed:', err);
-      }
-    };
+    s.on('connect_error', (err) => {
+      console.error('Socket connection error:', err.message);
+    });
 
-    connectSocket();
+    socketRef.current = s;
+    setSocket(s);
 
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
+        setSocket(null);
+        setConnected(false);
       }
     };
   }, [user]);

@@ -1,10 +1,11 @@
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const Chat = require('../models/Chat');
-const Notification = require('../models/Notification');
-const Organization = require('../models/Organization');
-const Workspace = require('../models/Workspace');
+const mongoose = require('mongoose');
+const User = require('./models/User');
+const Chat = require('./models/Chat');
+const Notification = require('./models/Notification');
+const Organization = require('./models/Organization');
+const Workspace = require('./models/Workspace');
 
 const onlineUsers = new Map();
 
@@ -80,7 +81,7 @@ function setupSocket(server) {
         const message = {
           text,
           author: socket.userId,
-          _id: new require('mongoose').Types.ObjectId(),
+          _id: new mongoose.Types.ObjectId(),
           createdAt: new Date(),
         };
 

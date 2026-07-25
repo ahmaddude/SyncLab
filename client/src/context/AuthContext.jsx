@@ -16,6 +16,7 @@ export function AuthProvider({ children }) {
       const data = await api.get('/auth/me');
       setUser(data);
     } catch {
+      localStorage.removeItem('accessToken');
       setUser(null);
     } finally {
       setLoading(false);
@@ -25,6 +26,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const data = await api.post('/auth/login', { email, password });
     api.setToken(data.accessToken);
+    localStorage.setItem('accessToken', data.accessToken);
     setUser(data.user);
     return data;
   };
@@ -32,6 +34,7 @@ export function AuthProvider({ children }) {
   const register = async (name, email, password) => {
     const data = await api.post('/auth/register', { name, email, password });
     api.setToken(data.accessToken);
+    localStorage.setItem('accessToken', data.accessToken);
     setUser(data.user);
     return data;
   };
@@ -43,6 +46,7 @@ export function AuthProvider({ children }) {
       // ignore
     }
     api.setToken(null);
+    localStorage.removeItem('accessToken');
     setUser(null);
   };
 
@@ -51,7 +55,7 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

@@ -2,7 +2,7 @@ const API_BASE = '/api';
 
 class ApiClient {
   constructor() {
-    this.accessToken = null;
+    this.accessToken = localStorage.getItem('accessToken') || null;
   }
 
   setToken(token) {
@@ -53,6 +53,7 @@ class ApiClient {
 
       const data = await res.json();
       this.accessToken = data.accessToken;
+      localStorage.setItem('accessToken', data.accessToken);
       return true;
     } catch {
       return false;
