@@ -112,6 +112,24 @@ export default function DocumentEditor() {
     editorRef.current?.focus();
   }
 
+  function saveNow() {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    const content = editorRef.current?.innerHTML || '';
+    setSaving(true);
+    api.put(`/documents/${docIdRef.current}`, { content, title })
+      .then(() => setSaving(false))
+      .catch(() => setSaving(false));
+  }
+
+  function downloadDoc() {
+    const content = editorRef.current?.innerHTML || '';
+    const docTitle = title || 'Untitled';
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${docTitle}</title><style>body{font-family:system-ui,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.7;color:#1f2937}h1{font-size:2rem;margin-bottom:1rem}h2{font-size:1.5rem;margin:1.5rem 0 0.5rem}h3{font-size:1.25rem;margin:1.25rem 0 0.5rem}ul,ol{padding-left:1.5rem;margin:0.5rem 0}a{color:#4f46e5}</style></head><body><h1>${docTitle}</h1>${content}</body></html>`);
+    printWindow.document.close();
+    setTimeout(() => printWindow.print(), 500);
+  }
+
   function handleKeyDown(e) {
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -155,9 +173,21 @@ export default function DocumentEditor() {
           className="text-2xl font-bold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 w-full"
           placeholder="Untitled"
         />
-        <span className={`text-xs shrink-0 ml-4 ${saving ? 'text-orange-500' : 'text-gray-400'}`}>
-          {saving ? 'Saving...' : 'Saved'}
-        </span>
+        <div className="flex items-center gap-2 shrink-0 ml-4">
+          <button
+            onClick={saveNow}
+            className="px-3 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50"
+            disabled={saving}
+          >
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+          <button
+            onClick={downloadDoc}
+            className="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+          >
+            Download PDF
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
