@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../utils/api';
 import Chat from '../components/Chat';
 import Presence from '../components/Presence';
+import DocumentList from '../components/DocumentList';
 
 export default function WorkspacePage() {
   const { id } = useParams();
@@ -252,6 +253,10 @@ export default function WorkspacePage() {
           )}
         </>
       )}
+
+      <div className="mt-8">
+        <DocumentList workspaceId={id} />
+      </div>
 
       <div className="mt-8">
         <Chat workspaceId={id} />

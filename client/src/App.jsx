@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import OrgPage from './pages/OrgPage';
 import WorkspacePage from './pages/WorkspacePage';
 import ProjectPage from './pages/ProjectPage';
+import DocumentEditor from './pages/DocumentEditor';
 
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
@@ -65,6 +66,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <ProjectPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/documents/:id"
+          element={
+            <ProtectedRoute>
+              <DocumentEditor />
             </ProtectedRoute>
           }
         />
