@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../utils/api';
+import Chat from '../components/Chat';
+import Presence from '../components/Presence';
 
 export default function WorkspacePage() {
   const { id } = useParams();
@@ -111,6 +113,12 @@ export default function WorkspacePage() {
           New Project
         </button>
       </div>
+
+      {workspace.organization && (
+        <div className="mb-6">
+          <Presence orgId={workspace.organization._id || workspace.organization} />
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg">{error}</div>
@@ -244,6 +252,10 @@ export default function WorkspacePage() {
           )}
         </>
       )}
+
+      <div className="mt-8">
+        <Chat workspaceId={id} />
+      </div>
     </div>
   );
 }

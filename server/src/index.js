@@ -1,9 +1,11 @@
 require('dotenv').config();
+const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const connectDB = require('./config/db');
+const { setupSocket } = require('./socket');
 
 const authRoutes = require('./routes/auth');
 const orgRoutes = require('./routes/orgs');
@@ -11,10 +13,14 @@ const workspaceRoutes = require('./routes/workspaces');
 const projectRoutes = require('./routes/projects');
 const taskRoutes = require('./routes/tasks');
 const activityRoutes = require('./routes/activity');
+const chatRoutes = require('./routes/chat');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
+const server = http.createServer(app);
 
 connectDB();
+setupSocket(server);
 
 app.use(morgan('dev'));
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
@@ -27,6 +33,8 @@ app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -38,6 +46,6 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`SyncLab server running on port ${PORT}`);
 });

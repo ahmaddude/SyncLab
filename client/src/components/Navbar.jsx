@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Notifications from './Notifications';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -18,7 +19,11 @@ export default function Navbar() {
         </Link>
 
         {user && (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <Notifications />
+            <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-medium">
+              {user.name?.[0]?.toUpperCase() || '?'}
+            </div>
             <span className="text-sm text-gray-600">{user.name}</span>
             <button
               onClick={handleLogout}
