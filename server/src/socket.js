@@ -6,6 +6,7 @@ const Chat = require('./models/Chat');
 const Notification = require('./models/Notification');
 const Organization = require('./models/Organization');
 const Workspace = require('./models/Workspace');
+const Document = require('./models/Document');
 
 const onlineUsers = new Map();
 
@@ -103,6 +104,44 @@ function setupSocket(server) {
       } catch (err) {
         console.error('Chat error:', err);
       }
+    });
+
+    socket.on('doc:join', (docId) => {
+      socket.join(`doc:${docId}`);
+    });
+
+    socket.on('doc:leave', (docId) => {
+      socket.leave(`doc:${docId}`);
+    });
+
+    socket.on('doc:update', async (data) => {
+      try {
+        const { docId, content, title } = data;
+        const update = {};
+        if (content !== undefined) update.content = content;
+        if (title !== undefined) update.title = title;
+
+        await Document.findByIdAndUpdate(docId, update);
+
+        socket.to(`doc:${docId}`).emit('doc:update', {
+          docId,
+          content,
+          title,
+          updatedBy: { _id: socket.userId, name: socket.userName },
+        });
+      } catch (err) {
+        console.error('Doc update error:', err);
+      }
+    });
+
+    socket.on('doc:cursor', (data) => {
+      const { docId, cursor } = data;
+      socket.to(`doc:${docId}`).emit('doc:cursor', {
+        docId,
+        userId: socket.userId,
+        userName: socket.userName,
+        cursor,
+      });
     });
 
     socket.on('disconnect', async () => {
