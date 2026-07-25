@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
-import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 
 const TOOLBAR_BUTTONS = [
@@ -23,7 +22,6 @@ const TOOLBAR_BUTTONS = [
 
 export default function DocumentEditor() {
   const { id } = useParams();
-  const { user } = useAuth();
   const { socket } = useSocket();
   const [doc, setDoc] = useState(null);
   const [title, setTitle] = useState('');
@@ -32,88 +30,76 @@ export default function DocumentEditor() {
   const editorRef = useRef(null);
   const saveTimeoutRef = useRef(null);
   const remoteUpdate = useRef(false);
+  const socketRef = useRef(socket);
+  const docIdRef = useRef(id);
+
+  socketRef.current = socket;
+  docIdRef.current = id;
 
   useEffect(() => {
-    fetchDoc();
+    api.get(`/documents/${id}`).then((data) => {
+      setDoc(data);
+      setTitle(data.title);
+      if (editorRef.current) {
+        editorRef.current.innerHTML = data.content || '';
+      }
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, [id]);
 
   useEffect(() => {
-    if (!socket || !id) return;
+    const s = socketRef.current;
+    if (!s || !id) return;
 
-    socket.emit('doc:join', id);
+    s.emit('doc:join', id);
 
     function handleRemoteUpdate(data) {
-      if (data.docId !== id || !editorRef.current) return;
-
+      if (data.docId !== docIdRef.current || !editorRef.current) return;
       remoteUpdate.current = true;
-
       if (data.content !== undefined) {
         editorRef.current.innerHTML = data.content;
       }
       if (data.title !== undefined) {
         setTitle(data.title);
       }
-
-      setTimeout(() => { remoteUpdate.current = false; }, 0);
+      setTimeout(() => { remoteUpdate.current = false; }, 50);
     }
 
-    socket.on('doc:update', handleRemoteUpdate);
+    s.on('doc:update', handleRemoteUpdate);
 
     return () => {
-      socket.emit('doc:leave', id);
-      socket.off('doc:update', handleRemoteUpdate);
+      s.emit('doc:leave', id);
+      s.off('doc:update', handleRemoteUpdate);
     };
   }, [socket, id]);
 
-  const fetchDoc = async () => {
-    try {
-      const data = await api.get(`/documents/${id}`);
-      setDoc(data);
-      setTitle(data.title);
-      if (editorRef.current) {
-        editorRef.current.innerHTML = data.content || '';
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+  function handleInput() {
+    if (remoteUpdate.current || !editorRef.current) return;
+    const content = editorRef.current.innerHTML;
+    const s = socketRef.current;
+    if (s && s.connected) {
+      s.emit('doc:update', { docId: docIdRef.current, content });
     }
-  };
-
-  function emitUpdate(content, docTitle) {
-    if (remoteUpdate.current || !socket) return;
-
-    const payload = { docId: id };
-    if (content !== undefined) payload.content = content;
-    if (docTitle !== undefined) payload.title = docTitle;
-    socket.emit('doc:update', payload);
-  }
-
-  function scheduleSave(content, docTitle) {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
       setSaving(true);
-      const body = {};
-      if (content !== undefined) body.content = content;
-      if (docTitle !== undefined) body.title = docTitle;
-      api.put(`/documents/${id}`, body)
+      api.put(`/documents/${docIdRef.current}`, { content })
         .then(() => setSaving(false))
         .catch(() => setSaving(false));
     }, 1000);
   }
 
-  function handleInput() {
-    if (remoteUpdate.current || !editorRef.current) return;
-    const content = editorRef.current.innerHTML;
-    emitUpdate(content);
-    scheduleSave(content);
-  }
-
   function handleTitleChange(e) {
     const val = e.target.value;
     setTitle(val);
-    emitUpdate(undefined, val);
-    scheduleSave(undefined, val);
+    const s = socketRef.current;
+    if (s && s.connected) {
+      s.emit('doc:update', { docId: docIdRef.current, title: val });
+    }
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      api.put(`/documents/${docIdRef.current}`, { title: val });
+    }, 1000);
   }
 
   function execCommand(cmd, value) {
@@ -124,7 +110,6 @@ export default function DocumentEditor() {
       document.execCommand(cmd, false, value || null);
     }
     editorRef.current?.focus();
-    handleInput();
   }
 
   function handleKeyDown(e) {

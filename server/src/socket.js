@@ -108,10 +108,12 @@ function setupSocket(server) {
 
     socket.on('doc:join', (docId) => {
       socket.join(`doc:${docId}`);
+      console.log(`[Socket] ${socket.userName} joined doc:${docId}`);
     });
 
     socket.on('doc:leave', (docId) => {
       socket.leave(`doc:${docId}`);
+      console.log(`[Socket] ${socket.userName} left doc:${docId}`);
     });
 
     socket.on('doc:update', async (data) => {
@@ -122,6 +124,9 @@ function setupSocket(server) {
         if (title !== undefined) update.title = title;
 
         await Document.findByIdAndUpdate(docId, update);
+
+        const room = io.sockets.adapter.rooms.get(`doc:${docId}`);
+        console.log(`[Socket] doc:update from ${socket.userName} for doc:${docId}, room size: ${room ? room.size : 0}`);
 
         socket.to(`doc:${docId}`).emit('doc:update', {
           docId,
