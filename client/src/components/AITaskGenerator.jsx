@@ -81,11 +81,11 @@ export default function AITaskGenerator({ projectId, onTasksCreated, onClose }) 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-neutral-950 border border-neutral-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-neutral-950 border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col animate-slide-up" onClick={(e) => e.stopPropagation()}>
         <div className="p-6 border-b border-neutral-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
               <svg className="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
@@ -102,29 +102,31 @@ export default function AITaskGenerator({ projectId, onTasksCreated, onClose }) 
 
         <div className="p-6 overflow-y-auto flex-1">
           {!tasks ? (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-neutral-400 mb-2">Describe the feature you want to build</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleGenerate(); }}
                   rows={5}
                   placeholder="e.g. User authentication system with email/password, OAuth (Google, GitHub), password reset, email verification, and session management..."
                   className="input-field resize-none"
                 />
+                <p className="text-[11px] text-neutral-600 mt-1.5">Press Ctrl+Enter to generate</p>
               </div>
               {error && (
-                <div className="px-4 py-3 rounded-lg bg-red-950/40 border border-red-900/60 text-red-400 text-sm">{error}</div>
+                <div className="px-4 py-3 rounded-xl bg-red-950/40 border border-red-900/60 text-red-400 text-sm">{error}</div>
               )}
               <button
                 onClick={handleGenerate}
                 disabled={!description.trim() || loading}
-                className="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-neutral-950 bg-teal-500 hover:bg-teal-400 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                className="w-full px-4 py-3 rounded-xl text-sm font-medium text-neutral-950 bg-teal-500 hover:bg-teal-400 disabled:opacity-50 transition-all flex items-center justify-center gap-2.5"
               >
                 {loading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-neutral-950/30 border-t-neutral-950 rounded-full animate-spin" />
-                    Generating tasks...
+                    Analyzing and generating tasks...
                   </>
                 ) : (
                   <>
@@ -137,15 +139,28 @@ export default function AITaskGenerator({ projectId, onTasksCreated, onClose }) 
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-neutral-400">
-                  {selected.size} of {tasks.length} tasks selected
-                </span>
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-neutral-300 font-medium">
+                    <span className="text-teal-400">{selected.size}</span>
+                    <span className="text-neutral-500"> / {tasks.length} tasks</span>
+                  </span>
+                  <button
+                    onClick={() => {
+                      if (selected.size === tasks.length) setSelected(new Set());
+                      else setSelected(new Set(tasks.map((_, i) => i)));
+                    }}
+                    className="text-[11px] text-neutral-500 hover:text-teal-400 transition-colors"
+                  >
+                    {selected.size === tasks.length ? 'Deselect all' : 'Select all'}
+                  </button>
+                </div>
                 <button
-                  onClick={() => { setTasks(null); setEditingIdx(null); }}
-                  className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
+                  onClick={() => { setTasks(null); setEditingIdx(null); setError(''); }}
+                  className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors flex items-center gap-1"
                 >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                   Start over
                 </button>
               </div>
@@ -153,7 +168,11 @@ export default function AITaskGenerator({ projectId, onTasksCreated, onClose }) 
               {tasks.map((task, idx) => (
                 <div
                   key={idx}
-                  className={`bg-neutral-900 border rounded-xl p-4 transition-colors ${selected.has(idx) ? 'border-teal-500/30' : 'border-neutral-800 opacity-50'}`}
+                  className={`group bg-neutral-900 border rounded-xl p-4 transition-all ${
+                    selected.has(idx)
+                      ? 'border-teal-500/25 shadow-[0_0_0_1px_rgba(20,184,166,0.05)]'
+                      : 'border-neutral-800 opacity-60'
+                  } ${editingIdx === idx ? 'ring-1 ring-teal-500/30' : ''}`}
                 >
                   {editingIdx === idx ? (
                     <div className="space-y-3">
@@ -162,6 +181,7 @@ export default function AITaskGenerator({ projectId, onTasksCreated, onClose }) 
                         value={task.title}
                         onChange={(e) => updateTask(idx, 'title', e.target.value)}
                         className="input-field text-sm"
+                        autoFocus
                       />
                       <textarea
                         value={task.description}
@@ -179,7 +199,7 @@ export default function AITaskGenerator({ projectId, onTasksCreated, onClose }) 
                             <option key={key} value={key}>{val.label}</option>
                           ))}
                         </select>
-                        <button onClick={() => setEditingIdx(null)} className="text-xs text-teal-400 hover:text-teal-300">Done</button>
+                        <button onClick={() => setEditingIdx(null)} className="text-xs text-teal-400 hover:text-teal-300 font-medium">Done</button>
                       </div>
                     </div>
                   ) : (
@@ -198,14 +218,14 @@ export default function AITaskGenerator({ projectId, onTasksCreated, onClose }) 
                           </span>
                         </div>
                         {task.description && (
-                          <p className="text-xs text-neutral-500 mt-1 line-clamp-2">{task.description}</p>
+                          <p className="text-xs text-neutral-500 mt-1.5 line-clamp-2 leading-relaxed">{task.description}</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button onClick={() => setEditingIdx(idx)} className="text-neutral-600 hover:text-neutral-300 transition-colors p-1">
+                      <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100">
+                        <button onClick={() => setEditingIdx(idx)} className="text-neutral-600 hover:text-neutral-300 transition-colors p-1.5 rounded-lg hover:bg-neutral-800">
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                         </button>
-                        <button onClick={() => removeTask(idx)} className="text-neutral-600 hover:text-red-400 transition-colors p-1">
+                        <button onClick={() => removeTask(idx)} className="text-neutral-600 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-neutral-800">
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                       </div>
@@ -215,7 +235,7 @@ export default function AITaskGenerator({ projectId, onTasksCreated, onClose }) 
               ))}
 
               {error && (
-                <div className="px-4 py-3 rounded-lg bg-red-950/40 border border-red-900/60 text-red-400 text-sm">{error}</div>
+                <div className="px-4 py-3 rounded-xl bg-red-950/40 border border-red-900/60 text-red-400 text-sm">{error}</div>
               )}
             </div>
           )}
@@ -224,15 +244,16 @@ export default function AITaskGenerator({ projectId, onTasksCreated, onClose }) 
         {tasks && tasks.length > 0 && (
           <div className="p-6 border-t border-neutral-800 flex items-center justify-between">
             <button
-              onClick={() => { setTasks(null); setEditingIdx(null); }}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition-colors"
+              onClick={() => { setTasks(null); setEditingIdx(null); setError(''); }}
+              className="px-4 py-2.5 rounded-xl text-sm font-medium text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition-colors flex items-center gap-2"
             >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
               Back
             </button>
             <button
               onClick={handleCreate}
               disabled={selected.size === 0 || creating}
-              className="px-6 py-2 rounded-lg text-sm font-medium text-neutral-950 bg-teal-500 hover:bg-teal-400 disabled:opacity-50 transition-colors flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl text-sm font-medium text-neutral-950 bg-teal-500 hover:bg-teal-400 disabled:opacity-50 transition-all flex items-center gap-2"
             >
               {creating ? (
                 <>
@@ -240,7 +261,10 @@ export default function AITaskGenerator({ projectId, onTasksCreated, onClose }) 
                   Creating...
                 </>
               ) : (
-                `Create ${selected.size} Task${selected.size !== 1 ? 's' : ''}`
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                  Create {selected.size} Task{selected.size !== 1 ? 's' : ''}
+                </>
               )}
             </button>
           </div>
