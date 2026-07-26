@@ -20,23 +20,19 @@ export default function Notifications() {
 
   useEffect(() => {
     if (!socket) return;
-
     const handleNotification = (data) => {
       if (data.user === user?.id) {
         setNotifications((prev) => [data, ...prev]);
         setUnreadCount((prev) => prev + 1);
       }
     };
-
     socket.on('notification', handleNotification);
     return () => socket.off('notification', handleNotification);
   }, [socket, user]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setOpen(false);
-      }
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -75,9 +71,7 @@ export default function Notifications() {
   const handleMarkOneRead = async (id) => {
     try {
       await api.put(`/notifications/${id}/read`);
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, read: true } : n))
-      );
+      setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, read: true } : n)));
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
       console.error(err);
@@ -86,12 +80,12 @@ export default function Notifications() {
 
   const getIcon = (type) => {
     switch (type) {
-      case 'task_assigned': return '📋';
-      case 'task_updated': return '✏️';
-      case 'comment_added': return '💬';
-      case 'chat_message': return '💬';
-      case 'member_added': return '👤';
-      default: return '📌';
+      case 'task_assigned': return { color: 'text-blue-400', bg: 'bg-blue-950/40' };
+      case 'task_updated': return { color: 'text-amber-400', bg: 'bg-amber-950/40' };
+      case 'comment_added': return { color: 'text-purple-400', bg: 'bg-purple-950/40' };
+      case 'chat_message': return { color: 'text-purple-400', bg: 'bg-purple-950/40' };
+      case 'member_added': return { color: 'text-emerald-400', bg: 'bg-emerald-950/40' };
+      default: return { color: 'text-neutral-400', bg: 'bg-neutral-800' };
     }
   };
 
@@ -108,31 +102,25 @@ export default function Notifications() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
-      >
+      <button onClick={() => setOpen(!open)}
+        className="relative p-2 text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 rounded-lg transition-colors">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-medium">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-900">Notifications</h3>
+        <div className="absolute right-0 top-full mt-2 w-80 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-800">
+            <h3 className="font-semibold text-neutral-100 font-['Space_Grotesk',sans-serif]">Notifications</h3>
             {unreadCount > 0 && (
-              <button
-                onClick={handleMarkAllRead}
-                className="text-xs text-primary-600 hover:text-primary-700"
-              >
+              <button onClick={handleMarkAllRead} className="text-xs font-medium text-teal-400 hover:text-teal-300 transition-colors">
                 Mark all read
               </button>
             )}
@@ -140,42 +128,46 @@ export default function Notifications() {
 
           <div className="max-h-96 overflow-y-auto">
             {loading ? (
-              <div className="p-4 text-center text-gray-400 text-sm">Loading...</div>
+              <div className="p-8 text-center text-neutral-500 text-sm">Loading...</div>
             ) : notifications.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 text-sm">No notifications yet</div>
+              <div className="p-8 text-center">
+                <p className="text-neutral-500 text-sm">No notifications yet</p>
+              </div>
             ) : (
-              notifications.map((n) => (
-                <div
-                  key={n._id}
-                  onClick={() => {
-                    if (!n.read) handleMarkOneRead(n._id);
-                    if (n.link) setOpen(false);
-                  }}
-                  className={`px-4 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                    !n.read ? 'bg-primary-50' : ''
-                  }`}
-                >
-                  <div className="flex gap-3">
-                    <span className="text-lg shrink-0">{getIcon(n.type)}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900 leading-snug">{n.title}</p>
-                      <span className="text-[11px] text-gray-400">{getTimeAgo(n.createdAt)}</span>
+              notifications.map((n) => {
+                const icon = getIcon(n.type);
+                return (
+                  <div key={n._id}
+                    onClick={() => {
+                      if (!n.read) handleMarkOneRead(n._id);
+                      if (n.link) setOpen(false);
+                    }}
+                    className={`px-5 py-3.5 border-b border-neutral-800/50 cursor-pointer hover:bg-neutral-800/50 transition-colors ${
+                      !n.read ? 'bg-teal-500/5' : ''
+                    }`}>
+                    <div className="flex gap-3">
+                      <div className={`w-8 h-8 rounded-lg ${icon.bg} flex items-center justify-center shrink-0`}>
+                        <svg className={`w-4 h-4 ${icon.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-neutral-300 leading-snug">{n.title}</p>
+                        <span className="text-[11px] text-neutral-500 mt-0.5 block">{getTimeAgo(n.createdAt)}</span>
+                      </div>
+                      {!n.read && (
+                        <div className="w-2 h-2 rounded-full bg-teal-500 shrink-0 mt-1.5" />
+                      )}
                     </div>
-                    {!n.read && (
-                      <div className="w-2 h-2 rounded-full bg-primary-500 shrink-0 mt-1.5" />
+                    {n.link && (
+                      <Link to={n.link} onClick={() => setOpen(false)}
+                        className="block mt-1.5 ml-11 text-xs font-medium text-teal-400 hover:text-teal-300 transition-colors">
+                        View →
+                      </Link>
                     )}
                   </div>
-                  {n.link && (
-                    <Link
-                      to={n.link}
-                      onClick={() => setOpen(false)}
-                      className="block mt-1 text-xs text-primary-600 hover:text-primary-700"
-                    >
-                      View →
-                    </Link>
-                  )}
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
