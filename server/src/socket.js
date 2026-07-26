@@ -45,8 +45,6 @@ function setupSocket(server) {
   });
 
   io.on('connection', async (socket) => {
-    console.log(`User connected: ${socket.userName} (${socket.userId})`);
-
     const userOrgs = await Organization.find({ 'members.user': socket.userId });
     const orgIds = userOrgs.map((o) => o._id.toString());
 
@@ -145,7 +143,6 @@ function setupSocket(server) {
     });
 
     socket.on('disconnect', async () => {
-      console.log(`User disconnected: ${socket.userName}`);
       onlineUsers.delete(socket.id);
 
       for (const orgId of orgIds) {
