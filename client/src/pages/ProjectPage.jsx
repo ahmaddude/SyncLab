@@ -4,6 +4,7 @@ import api from '../utils/api';
 import KanbanBoard from '../components/KanbanBoard';
 import TaskDetail from '../components/TaskDetail';
 import CreateTask from '../components/CreateTask';
+import AITaskGenerator from '../components/AITaskGenerator';
 import ActivityLog from '../components/ActivityLog';
 
 export default function ProjectPage() {
@@ -15,6 +16,7 @@ export default function ProjectPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showActivity, setShowActivity] = useState(false);
+  const [showAI, setShowAI] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => { fetchData(); }, [id]);
@@ -80,6 +82,10 @@ export default function ProjectPage() {
     }
   };
 
+  const handleAITasksCreated = (newTasks) => {
+    setTasks([...newTasks, ...tasks]);
+  };
+
   const handleTaskUpdate = (updated) => {
     if (updated._deleted) {
       setTasks(tasks.filter((t) => t._id !== updated._id));
@@ -128,6 +134,11 @@ export default function ProjectPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
               Activity
             </button>
+            <button onClick={() => setShowAI(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-neutral-200 bg-neutral-900 border border-neutral-800 hover:border-teal-500/30 hover:bg-neutral-800 transition-colors">
+              <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              AI Generate
+            </button>
             <button onClick={() => setShowCreate(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-neutral-950 bg-teal-500 hover:bg-teal-400 transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -164,6 +175,10 @@ export default function ProjectPage() {
 
         {selectedTask && (
           <TaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} onUpdate={handleTaskUpdate} members={members} />
+        )}
+
+        {showAI && (
+          <AITaskGenerator projectId={id} onTasksCreated={handleAITasksCreated} onClose={() => setShowAI(false)} />
         )}
       </div>
     </div>
