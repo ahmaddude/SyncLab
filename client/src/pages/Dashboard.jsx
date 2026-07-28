@@ -25,11 +25,11 @@ const PRIORITY_MAP = {
 };
 
 const ACTIVITY_ICONS = {
-  task_created: { color: 'text-emerald-600', bg: 'bg-emerald-50', d: 'M12 4v16m8-8H4' },
-  task_updated: { color: 'text-blue-600', bg: 'bg-blue-50', d: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
-  task_moved: { color: 'text-purple-600', bg: 'bg-purple-50', d: 'M13 7l5 5m0 0l-5 5m5-5H6' },
-  task_deleted: { color: 'text-red-600', bg: 'bg-red-50', d: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' },
-  comment_added: { color: 'text-brand-800', bg: 'bg-brand-100', d: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
+  task_created: { color: 'text-gold-600', bg: 'bg-brand-800', d: 'M12 4v16m8-8H4' },
+  task_updated: { color: 'text-gold-500', bg: 'bg-brand-700', d: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
+  task_moved: { color: 'text-gold-400', bg: 'bg-brand-800', d: 'M13 7l5 5m0 0l-5 5m5-5H6' },
+  task_deleted: { color: 'text-red-400', bg: 'bg-red-900/30', d: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' },
+  comment_added: { color: 'text-gold-500', bg: 'bg-brand-700', d: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
 };
 
 const DEFAULT_ACTIVITY_ICON = { color: 'text-brand-400', bg: 'bg-brand-100', d: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' };
@@ -94,7 +94,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-        <div className="w-7 h-7 border-2 border-brand-300 border-t-brand-800 rounded-full animate-spin" />
+        <div className="w-7 h-7 border-2 border-brand-300 border-t-gold-500 rounded-full animate-spin" />
       </div>
     );
   }
@@ -105,11 +105,12 @@ export default function Dashboard() {
     <div className="min-h-screen">
       <div className="h-[3px] bg-brand-800" />
       <div className="h-px bg-gold-400" />
+      <div className="h-px bg-brand-800 mt-px" />
 
       <div className="max-w-6xl mx-auto px-6 sm:px-8 py-12">
         <div className="flex items-end justify-between mb-10 pb-6 border-b border-brand-300">
           <div>
-            <p className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase mb-2">
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-2">
               Workspace Overview
             </p>
             <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">
@@ -118,7 +119,7 @@ export default function Dashboard() {
           </div>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gold-500 hover:bg-gold-600 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -134,13 +135,13 @@ export default function Dashboard() {
         )}
 
         {showCreate && (
-          <div className="mb-10 bg-white border border-brand-300">
-            <div className="px-6 py-4 border-b border-brand-200">
-              <h2 className="text-[15px] font-semibold text-brand-900 font-heading">
+          <div className="mb-10 border border-brand-200">
+            <div className="bg-brand-800 px-6 py-4">
+              <h2 className="text-[15px] font-semibold text-white font-heading">
                 Create Organization
               </h2>
             </div>
-            <form onSubmit={handleCreate} className="p-6 space-y-5">
+            <form onSubmit={handleCreate} className="p-6 space-y-5 bg-white">
               <div>
                 <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">
                   Name
@@ -165,7 +166,7 @@ export default function Dashboard() {
               <div className="flex gap-3 pt-1">
                 <button
                   type="submit" disabled={creating}
-                  className="px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 disabled:opacity-50 transition-colors"
+                  className="px-4 py-2.5 text-sm font-medium text-white bg-gold-500 hover:bg-gold-600 disabled:opacity-50 transition-colors"
                 >
                   {creating ? 'Creating\u2026' : 'Create Organization'}
                 </button>
@@ -190,12 +191,12 @@ export default function Dashboard() {
         )}
 
         {summary && summary.myTasks.length > 0 && (
-          <div className="mb-10 bg-white border border-brand-300">
-            <div className="px-6 py-4 border-b border-brand-200 flex items-center justify-between">
-              <h2 className="text-[15px] font-semibold text-brand-900 font-heading">My Tasks</h2>
-              <span className="text-xs text-brand-400">{summary.myTasks.length} assigned to you</span>
+          <div className="mb-10 border border-brand-200">
+            <div className="bg-brand-800 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-[15px] font-semibold text-white font-heading">My Tasks</h2>
+              <span className="text-xs text-gold-300 font-medium">{summary.myTasks.length} assigned to you</span>
             </div>
-            <div className="divide-y divide-brand-200">
+            <div className="divide-y divide-brand-200 bg-white">
               {summary.myTasks.map((task) => {
                 const s = STATUS_MAP[task.status] || STATUS_MAP.todo;
                 const p = PRIORITY_MAP[task.priority] || PRIORITY_MAP.medium;
@@ -228,9 +229,9 @@ export default function Dashboard() {
         )}
 
         {summary && summary.myTasks.length === 0 && totalTasks > 0 && (
-          <div className="mb-10 bg-white border border-brand-300 px-6 py-5 flex items-center gap-4">
-            <div className="w-10 h-10 bg-emerald-50 flex items-center justify-center shrink-0">
-              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mb-10 bg-white border border-brand-200 px-6 py-5 flex items-center gap-4">
+            <div className="w-10 h-10 bg-brand-800 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
@@ -243,13 +244,13 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase mb-4">
+            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">
               Organizations
             </h2>
             {orgs.length === 0 ? (
               <div className="text-center py-20 border border-dashed border-brand-300">
-                <div className="w-14 h-14 border border-brand-300 flex items-center justify-center mx-auto mb-5">
-                  <svg className="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-14 h-14 border border-gold-400 flex items-center justify-center mx-auto mb-5 bg-brand-800">
+                  <svg className="w-6 h-6 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                 </div>
@@ -268,8 +269,9 @@ export default function Dashboard() {
                     <Link
                       key={org._id}
                       to={`/organizations/${org._id}`}
-                      className="group block bg-white border border-brand-300 hover:border-brand-800 hover:shadow-[0_2px_12px_rgba(20,27,45,0.08)] transition-all"
+                      className="group block bg-white border border-brand-300 hover:border-gold-400 hover:shadow-[0_2px_12px_rgba(201,166,107,0.15)] transition-all relative overflow-hidden"
                     >
+                      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gold-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="flex items-start gap-4 p-5 pb-4">
                         <div
                           className="w-11 h-11 flex items-center justify-center shrink-0 text-[15px] font-semibold font-heading"
@@ -295,7 +297,7 @@ export default function Dashboard() {
                         {org.members.slice(0, 5).map((m) => (
                           <div
                             key={m.user._id}
-                            className="w-6 h-6 bg-brand-100 border border-white ring-1 ring-brand-300 flex items-center justify-center text-[9px] font-semibold text-brand-600 -ml-1.5 first:ml-0"
+                            className="w-6 h-6 bg-brand-800 border border-white ring-1 ring-gold-400 flex items-center justify-center text-[9px] font-semibold text-gold-400 -ml-1.5 first:ml-0"
                           >
                             {m.user.name?.[0]?.toUpperCase() || '?'}
                           </div>
@@ -309,12 +311,17 @@ export default function Dashboard() {
           </div>
 
           <div className="lg:col-span-1">
-            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase mb-4">
+            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">
               Recent Activity
             </h2>
-            <div className="bg-white border border-brand-300">
+            <div className="border border-brand-200">
+              {summary && summary.recentActivity.length > 0 && (
+                <div className="bg-brand-800 px-5 py-3">
+                  <span className="text-[11px] font-semibold tracking-[0.18em] text-gold-300 uppercase">Latest Updates</span>
+                </div>
+              )}
               {summary && summary.recentActivity.length > 0 ? (
-                <div className="divide-y divide-brand-200">
+                <div className="divide-y divide-brand-200 bg-white">
                   {summary.recentActivity.map((activity) => {
                     const style = ACTIVITY_ICONS[activity.action] || DEFAULT_ACTIVITY_ICON;
                     return (
@@ -364,16 +371,17 @@ export default function Dashboard() {
 
 function StatCard({ label, value, icon }) {
   return (
-    <div className="bg-white border border-brand-300 p-5">
+    <div className="bg-brand-800 border border-brand-700 p-5 relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gold-400" />
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase">{label}</span>
-        <div className="w-8 h-8 bg-brand-100 flex items-center justify-center">
-          <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <span className="text-[11px] font-semibold tracking-[0.18em] text-gold-300 uppercase">{label}</span>
+        <div className="w-8 h-8 bg-brand-700 flex items-center justify-center">
+          <svg className="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={icon} />
           </svg>
         </div>
       </div>
-      <p className="text-[28px] leading-none text-brand-900 font-heading tracking-tight">{value}</p>
+      <p className="text-[28px] leading-none  font-heading tracking-tight">{value}</p>
     </div>
   );
 }
