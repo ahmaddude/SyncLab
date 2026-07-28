@@ -62,45 +62,49 @@ export default function OrgPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-64px)] bg-neutral-950">
-        <div className="w-8 h-8 border-2 border-neutral-700 border-t-teal-500 rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <div className="w-7 h-7 border-2 border-brand-300 border-t-brand-800 rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!org) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8 bg-neutral-950 min-h-screen">
-        <p className="text-neutral-500">Organization not found.</p>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <p className="text-brand-500">Organization not found.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 font-[\'Public_Sans\',sans-serif]">
+    <div className="min-h-screen">
+      <div className="h-[3px] bg-brand-800" />
+      <div className="h-px bg-gold-400" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-        <div className="mb-2 text-sm text-neutral-500">
-          <Link to="/dashboard" className="hover:text-teal-400 transition-colors">Dashboard</Link>
-          <span className="mx-2">/</span>
-          <span className="text-neutral-200 font-medium">{org.name}</span>
+        <div className="mb-2 text-sm text-brand-500">
+          <Link to="/dashboard" className="hover:text-brand-800 transition-colors">Dashboard</Link>
+          <span className="mx-2 text-brand-300">/</span>
+          <span className="text-brand-900 font-medium">{org.name}</span>
         </div>
 
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center justify-between mb-10 pb-6 border-b border-brand-300">
           <div>
-            <h1 className="text-3xl font-bold text-neutral-50 font-[\'Space_Grotesk\',sans-serif] tracking-tight">{org.name}</h1>
-            {org.description && <p className="text-neutral-500 mt-1">{org.description}</p>}
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase mb-2">Organization</p>
+            <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">{org.name}</h1>
+            {org.description && <p className="text-brand-500 mt-2">{org.description}</p>}
           </div>
           <div className="flex gap-3">
             <button
               onClick={() => setShowInvite(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-neutral-200 bg-neutral-900 border border-neutral-800 hover:border-neutral-700 hover:bg-neutral-800 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-500 bg-white border border-brand-300 hover:border-brand-800 hover:text-brand-900 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
               Invite
             </button>
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-neutral-950 bg-teal-500 hover:bg-teal-400 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
               New Workspace
@@ -109,34 +113,36 @@ export default function OrgPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-950/40 text-red-400 text-sm rounded-lg border border-red-900/60">
+          <div className="mb-6 px-4 py-3 bg-[#FBEEEE] text-[#9B3B3B] text-sm border-l-2 border-[#9B3B3B]">
             {error}
           </div>
         )}
 
         {showInvite && (
-          <div className="mb-6 rounded-xl p-6 bg-neutral-900 border border-neutral-800">
-            <h2 className="text-lg font-semibold mb-4 text-neutral-100 font-['Space_Grotesk',sans-serif]">Invite Member</h2>
-            <form onSubmit={handleInvite} className="flex gap-3">
+          <div className="mb-6 bg-white border border-brand-300">
+            <div className="px-6 py-4 border-b border-brand-200">
+              <h2 className="text-[15px] font-semibold text-brand-900 font-heading">Invite Member</h2>
+            </div>
+            <form onSubmit={handleInvite} className="p-6 flex gap-3">
               <input
                 type="email"
                 required
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
-                className="flex-1 px-3.5 py-2.5 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-teal-500"
+                className="flex-1 input-field"
                 placeholder="member@example.com"
               />
               <button
                 type="submit"
                 disabled={inviting}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-950 bg-teal-500 hover:bg-teal-400 disabled:opacity-50 transition-colors"
+                className="px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 disabled:opacity-50 transition-colors"
               >
                 {inviting ? 'Inviting...' : 'Invite'}
               </button>
               <button
                 type="button"
                 onClick={() => setShowInvite(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition-colors"
+                className="px-4 py-2.5 text-sm font-medium text-brand-500 hover:text-brand-900 transition-colors"
               >
                 Cancel
               </button>
@@ -145,42 +151,44 @@ export default function OrgPage() {
         )}
 
         {showCreate && (
-          <div className="mb-6 rounded-xl p-6 bg-neutral-900 border border-neutral-800">
-            <h2 className="text-lg font-semibold mb-4 text-neutral-100 font-['Space_Grotesk',sans-serif]">Create Workspace</h2>
-            <form onSubmit={handleCreateWorkspace} className="space-y-4">
+          <div className="mb-6 bg-white border border-brand-300">
+            <div className="px-6 py-4 border-b border-brand-200">
+              <h2 className="text-[15px] font-semibold text-brand-900 font-heading">Create Workspace</h2>
+            </div>
+            <form onSubmit={handleCreateWorkspace} className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-neutral-400 mb-2">Name</label>
+                <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">Name</label>
                 <input
                   type="text"
                   required
                   value={wsName}
                   onChange={(e) => setWsName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-teal-500"
+                  className="input-field"
                   placeholder="Engineering Team"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-400 mb-2">Description</label>
+                <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">Description</label>
                 <input
                   type="text"
                   value={wsDesc}
                   onChange={(e) => setWsDesc(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-teal-500"
+                  className="input-field"
                   placeholder="What's this workspace for?"
                 />
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-1">
                 <button
                   type="submit"
                   disabled={creating}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-950 bg-teal-500 hover:bg-teal-400 disabled:opacity-50 transition-colors"
+                  className="px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 disabled:opacity-50 transition-colors"
                 >
                   {creating ? 'Creating...' : 'Create'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreate(false)}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition-colors"
+                  className="px-4 py-2.5 text-sm font-medium text-brand-500 hover:text-brand-900 transition-colors"
                 >
                   Cancel
                 </button>
@@ -190,18 +198,18 @@ export default function OrgPage() {
         )}
 
         <div className="mb-10">
-          <h2 className="text-lg font-semibold mb-4 text-neutral-100 font-['Space_Grotesk',sans-serif]">Members</h2>
+          <h2 className="text-[15px] font-semibold mb-4 text-brand-900 font-heading">Members</h2>
           <div className="flex flex-wrap gap-2">
             {org.members.map((m) => (
               <div
                 key={m.user._id}
-                className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg bg-neutral-900 border border-neutral-800 text-sm"
+                className="flex items-center gap-2.5 px-3.5 py-2 bg-white border border-brand-300 text-sm"
               >
-                <div className="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-[10px] font-semibold text-neutral-300">
+                <div className="w-7 h-7 bg-brand-100 border border-brand-300 flex items-center justify-center text-[10px] font-semibold text-brand-600">
                   {m.user.name?.[0]?.toUpperCase() || '?'}
                 </div>
-                <span className="font-medium text-neutral-300">{m.user.name}</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] capitalize bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                <span className="font-medium text-brand-900">{m.user.name}</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] capitalize bg-brand-800/10 text-brand-800 border border-brand-800/20">
                   {m.role}
                 </span>
               </div>
@@ -210,31 +218,31 @@ export default function OrgPage() {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-4 text-neutral-100 font-['Space_Grotesk',sans-serif]">Workspaces</h2>
+          <h2 className="text-[15px] font-semibold mb-4 text-brand-900 font-heading">Workspaces</h2>
           {workspaces.length === 0 ? (
-            <div className="text-center py-16 rounded-xl bg-neutral-900 border border-neutral-800">
-              <p className="text-neutral-500">No workspaces yet. Create one to get started.</p>
+            <div className="text-center py-16 bg-white border border-brand-300">
+              <p className="text-brand-500">No workspaces yet. Create one to get started.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {workspaces.map((ws) => (
                 <Link
                   key={ws._id}
                   to={`/workspaces/${ws._id}`}
-                  className="block p-6 rounded-xl bg-neutral-900 border border-neutral-800 hover:border-neutral-700 hover:bg-neutral-850 transition-colors"
+                  className="group block bg-white border border-brand-300 hover:border-brand-800 hover:shadow-[0_2px_12px_rgba(20,27,45,0.08)] transition-all p-6"
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-200 font-bold">
+                    <div className="w-10 h-10 bg-brand-100 border border-brand-300 flex items-center justify-center text-brand-800 font-bold text-sm">
                       {ws.name[0].toUpperCase()}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-neutral-100">{ws.name}</h3>
+                      <h3 className="font-semibold text-brand-900 group-hover:text-brand-800">{ws.name}</h3>
                       {ws.description && (
-                        <p className="text-xs text-neutral-500 line-clamp-1 mt-0.5">{ws.description}</p>
+                        <p className="text-xs text-brand-400 line-clamp-1 mt-0.5">{ws.description}</p>
                       )}
                     </div>
                   </div>
-                  <p className="text-xs text-neutral-500 mt-3 pt-3 border-t border-neutral-800">
+                  <p className="text-xs text-brand-500 mt-3 pt-3 border-t border-brand-200">
                     Created by {ws.createdBy?.name || 'Unknown'}
                   </p>
                 </Link>

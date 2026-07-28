@@ -97,50 +97,54 @@ export default function ProjectPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-        <div className="w-8 h-8 border-2 border-neutral-700 border-t-teal-500 rounded-full animate-spin" />
+        <div className="w-7 h-7 border-2 border-brand-300 border-t-brand-800 rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-neutral-950">
-        <div className="max-w-7xl mx-auto px-4 py-8"><p className="text-neutral-500">Project not found.</p></div>
+      <div className="min-h-screen">
+        <div className="max-w-7xl mx-auto px-4 py-8"><p className="text-brand-500">Project not found.</p></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 font-['Public_Sans',sans-serif]">
+    <div className="min-h-screen">
+      <div className="h-[3px] bg-brand-800" />
+      <div className="h-px bg-gold-400" />
+
       <div className="max-w-full mx-auto px-4 sm:px-6 py-6">
-        <div className="mb-2 text-sm text-neutral-500">
-          <Link to="/dashboard" className="hover:text-teal-400 transition-colors">Dashboard</Link>
-          <span className="mx-2">/</span>
-          <Link to={`/workspaces/${project.workspace?._id || ''}`} className="hover:text-teal-400 transition-colors">
+        <div className="mb-2 text-sm text-brand-500">
+          <Link to="/dashboard" className="hover:text-brand-800 transition-colors">Dashboard</Link>
+          <span className="mx-2 text-brand-300">/</span>
+          <Link to={`/workspaces/${project.workspace?._id || ''}`} className="hover:text-brand-800 transition-colors">
             {project.workspace?.name || 'Workspace'}
           </Link>
-          <span className="mx-2">/</span>
-          <span className="text-neutral-200 font-medium">{project.name}</span>
+          <span className="mx-2 text-brand-300">/</span>
+          <span className="text-brand-900 font-medium">{project.name}</span>
         </div>
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-300">
           <div>
-            <h1 className="text-3xl font-bold text-neutral-50 font-['Space_Grotesk',sans-serif] tracking-tight">{project.name}</h1>
-            {project.description && <p className="text-neutral-500 mt-1">{project.description}</p>}
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase mb-1">Project</p>
+            <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">{project.name}</h1>
+            {project.description && <p className="text-brand-500 mt-2">{project.description}</p>}
           </div>
           <div className="flex items-center gap-3">
             <button onClick={() => setShowActivity(!showActivity)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-neutral-200 bg-neutral-900 border border-neutral-800 hover:border-neutral-700 hover:bg-neutral-800 transition-colors ${showActivity ? 'ring-1 ring-teal-500/50' : ''}`}>
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-500 bg-white border border-brand-300 hover:border-brand-800 hover:text-brand-900 transition-colors ${showActivity ? 'ring-1 ring-brand-800/30' : ''}`}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
               Activity
             </button>
             <button onClick={() => setShowAI(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-neutral-200 bg-neutral-900 border border-neutral-800 hover:border-teal-500/30 hover:bg-neutral-800 transition-colors">
-              <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-500 bg-white border border-brand-300 hover:border-brand-800 hover:text-brand-900 transition-colors">
+              <svg className="w-4 h-4 text-brand-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               AI Generate
             </button>
             <button onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-neutral-950 bg-teal-500 hover:bg-teal-400 transition-colors">
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
               New Task
             </button>
@@ -148,7 +152,7 @@ export default function ProjectPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-950/40 text-red-400 text-sm rounded-lg border border-red-900/60">{error}</div>
+          <div className="mb-6 px-4 py-3 bg-[#FBEEEE] text-[#9B3B3B] text-sm border-l-2 border-[#9B3B3B]">{error}</div>
         )}
 
         <div className="flex gap-6">
@@ -158,9 +162,9 @@ export default function ProjectPage() {
 
           {showActivity && (
             <div className="w-80 shrink-0">
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 sticky top-6">
-                <h3 className="font-semibold text-neutral-100 mb-4 flex items-center gap-2 font-['Space_Grotesk',sans-serif]">
-                  <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <div className="bg-white border border-brand-300 p-5 sticky top-6">
+                <h3 className="font-semibold text-brand-900 mb-4 flex items-center gap-2 font-heading">
+                  <svg className="w-4 h-4 text-brand-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   Activity
                 </h3>
                 <ActivityLog projectId={id} />

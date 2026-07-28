@@ -1,16 +1,60 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 
-const ORG_ICONS = [
-  'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
-  'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
-  'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-  'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
-  'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10',
+const SEAL_TONES = [
+  { bg: '#1B2A4A', fg: '#C9A66B' },
+  { bg: '#2B3A55', fg: '#E5E7EB' },
+  { bg: '#0F1F38', fg: '#C9A66B' },
+  { bg: '#3A4A63', fg: '#E5E7EB' },
 ];
 
+const STATUS_MAP = {
+  todo: { label: 'To Do', bg: 'bg-brand-100', text: 'text-brand-600' },
+  in_progress: { label: 'In Progress', bg: 'bg-blue-50', text: 'text-blue-600' },
+  review: { label: 'Review', bg: 'bg-amber-50', text: 'text-amber-600' },
+  done: { label: 'Done', bg: 'bg-emerald-50', text: 'text-emerald-600' },
+};
+
+const PRIORITY_MAP = {
+  low: { bg: 'bg-brand-100', text: 'text-brand-500' },
+  medium: { bg: 'bg-blue-50', text: 'text-blue-600' },
+  high: { bg: 'bg-amber-50', text: 'text-amber-600' },
+  urgent: { bg: 'bg-red-50', text: 'text-red-600' },
+};
+
+const ACTIVITY_ICONS = {
+  task_created: { color: 'text-emerald-600', bg: 'bg-emerald-50', d: 'M12 4v16m8-8H4' },
+  task_updated: { color: 'text-blue-600', bg: 'bg-blue-50', d: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
+  task_moved: { color: 'text-purple-600', bg: 'bg-purple-50', d: 'M13 7l5 5m0 0l-5 5m5-5H6' },
+  task_deleted: { color: 'text-red-600', bg: 'bg-red-50', d: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' },
+  comment_added: { color: 'text-brand-800', bg: 'bg-brand-100', d: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
+};
+
+const DEFAULT_ACTIVITY_ICON = { color: 'text-brand-400', bg: 'bg-brand-100', d: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' };
+
+function initialsOf(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function getTimeAgo(date) {
+  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 export default function Dashboard() {
+  const { user } = useAuth();
+  const [summary, setSummary] = useState(null);
   const [orgs, setOrgs] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
@@ -19,12 +63,13 @@ export default function Dashboard() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => { fetchOrgs(); }, []);
+  useEffect(() => { fetchSummary(); }, []);
 
-  const fetchOrgs = async () => {
+  const fetchSummary = async () => {
     try {
-      const data = await api.get('/orgs');
-      setOrgs(data);
+      const data = await api.get('/dashboard/summary');
+      setSummary(data);
+      setOrgs(data.orgs);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -49,51 +94,85 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-        <div className="w-8 h-8 border-2 border-neutral-700 border-t-teal-500 rounded-full animate-spin" />
+        <div className="w-7 h-7 border-2 border-brand-300 border-t-brand-800 rounded-full animate-spin" />
       </div>
     );
   }
 
+  const totalTasks = summary ? summary.taskStats.todo + summary.taskStats.in_progress + summary.taskStats.review + summary.taskStats.done : 0;
+
   return (
-    <div className="min-h-screen bg-neutral-950 font-['Public_Sans',sans-serif]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-        <div className="flex items-center justify-between mb-10">
+    <div className="min-h-screen">
+      <div className="h-[3px] bg-brand-800" />
+      <div className="h-px bg-gold-400" />
+
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 py-12">
+        <div className="flex items-end justify-between mb-10 pb-6 border-b border-brand-300">
           <div>
-            <h1 className="text-3xl font-bold text-neutral-50 font-['Space_Grotesk',sans-serif] tracking-tight">Dashboard</h1>
-            <p className="text-neutral-500 mt-1">Your organizations</p>
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase mb-2">
+              Workspace Overview
+            </p>
+            <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">
+              {user?.name ? `${user.name.split(' ')[0]}'s Dashboard` : 'Dashboard'}
+            </h1>
           </div>
-          <button onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-neutral-950 bg-teal-500 hover:bg-teal-400 transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
             New Organization
           </button>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-950/40 text-red-400 text-sm rounded-lg border border-red-900/60">{error}</div>
+          <div className="mb-8 px-4 py-3 bg-[#FBEEEE] text-[#9B3B3B] text-sm border-l-2 border-[#9B3B3B]">
+            {error}
+          </div>
         )}
 
         {showCreate && (
-          <div className="mb-8 bg-neutral-900 border border-neutral-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold mb-4 text-neutral-100 font-['Space_Grotesk',sans-serif]">Create Organization</h2>
-            <form onSubmit={handleCreate} className="space-y-4">
+          <div className="mb-10 bg-white border border-brand-300">
+            <div className="px-6 py-4 border-b border-brand-200">
+              <h2 className="text-[15px] font-semibold text-brand-900 font-heading">
+                Create Organization
+              </h2>
+            </div>
+            <form onSubmit={handleCreate} className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-neutral-400 mb-2">Name</label>
-                <input type="text" required value={name} onChange={(e) => setName(e.target.value)}
-                  className="input-field" placeholder="My Organization" autoFocus />
+                <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">
+                  Name
+                </label>
+                <input
+                  type="text" required value={name} onChange={(e) => setName(e.target.value)}
+                  className="input-field"
+                  placeholder="Acme Holdings"
+                  autoFocus
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-400 mb-2">Description</label>
-                <input type="text" value={description} onChange={(e) => setDescription(e.target.value)}
-                  className="input-field" placeholder="What's this org for?" />
+                <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">
+                  Description
+                </label>
+                <input
+                  type="text" value={description} onChange={(e) => setDescription(e.target.value)}
+                  className="input-field"
+                  placeholder="What's this org for?"
+                />
               </div>
               <div className="flex gap-3 pt-1">
-                <button type="submit" disabled={creating}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-950 bg-teal-500 hover:bg-teal-400 disabled:opacity-50 transition-colors">
-                  {creating ? 'Creating...' : 'Create'}
+                <button
+                  type="submit" disabled={creating}
+                  className="px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 disabled:opacity-50 transition-colors"
+                >
+                  {creating ? 'Creating\u2026' : 'Create Organization'}
                 </button>
-                <button type="button" onClick={() => setShowCreate(false)}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition-colors">
+                <button
+                  type="button" onClick={() => setShowCreate(false)}
+                  className="px-4 py-2.5 text-sm font-medium text-brand-500 hover:text-brand-900 transition-colors"
+                >
                   Cancel
                 </button>
               </div>
@@ -101,51 +180,200 @@ export default function Dashboard() {
           </div>
         )}
 
-        {orgs.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-neutral-100 mb-2 font-['Space_Grotesk',sans-serif]">No organizations yet</h3>
-            <p className="text-neutral-500 max-w-sm mx-auto">Create your first organization to start collaborating with your team.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {orgs.map((org, i) => (
-              <Link key={org._id} to={`/organizations/${org._id}`}
-                className="block p-6 rounded-xl bg-neutral-900 border border-neutral-800 hover:border-neutral-700 hover:bg-neutral-850 transition-colors"
-                style={{ animationDelay: `${i * 0.05}s` }}>
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="w-11 h-11 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-200 shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={ORG_ICONS[i % ORG_ICONS.length]} />
-                    </svg>
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-neutral-100 truncate">{org.name}</h3>
-                    <p className="text-xs text-neutral-500 mt-0.5">
-                      {org.members.length} {org.members.length === 1 ? 'member' : 'members'}
-                    </p>
-                  </div>
-                </div>
-                {org.description && (
-                  <p className="text-sm text-neutral-500 line-clamp-2 leading-relaxed">{org.description}</p>
-                )}
-                <div className="mt-4 pt-4 border-t border-neutral-800 flex items-center gap-1.5">
-                  {org.members.slice(0, 5).map((m) => (
-                    <div key={m.user._id}
-                      className="w-6 h-6 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-[9px] font-semibold text-neutral-400 -ml-1.5 first:ml-0">
-                      {m.user.name?.[0]?.toUpperCase() || '?'}
-                    </div>
-                  ))}
-                </div>
-              </Link>
-            ))}
+        {summary && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+            <StatCard label="Projects" value={summary.projectCount} icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <StatCard label="Total Tasks" value={totalTasks} icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            <StatCard label="In Progress" value={summary.taskStats.in_progress} icon="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            <StatCard label="Completed" value={summary.taskStats.done} icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </div>
         )}
+
+        {summary && summary.myTasks.length > 0 && (
+          <div className="mb-10 bg-white border border-brand-300">
+            <div className="px-6 py-4 border-b border-brand-200 flex items-center justify-between">
+              <h2 className="text-[15px] font-semibold text-brand-900 font-heading">My Tasks</h2>
+              <span className="text-xs text-brand-400">{summary.myTasks.length} assigned to you</span>
+            </div>
+            <div className="divide-y divide-brand-200">
+              {summary.myTasks.map((task) => {
+                const s = STATUS_MAP[task.status] || STATUS_MAP.todo;
+                const p = PRIORITY_MAP[task.priority] || PRIORITY_MAP.medium;
+                return (
+                  <Link
+                    key={task._id}
+                    to={`/projects/${task.project?._id || ''}`}
+                    className="flex items-center gap-4 px-6 py-3.5 hover:bg-brand-50 transition-colors group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-brand-900 group-hover:text-brand-800 truncate">{task.title}</p>
+                      <p className="text-xs text-brand-400 mt-0.5">{task.project?.name || 'Unknown project'}</p>
+                    </div>
+                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.bg} ${s.text}`}>
+                      {s.label}
+                    </span>
+                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${p.bg} ${p.text}`}>
+                      {task.priority}
+                    </span>
+                    {task.dueDate && (
+                      <span className="shrink-0 text-[11px] text-brand-400 w-20 text-right">
+                        {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {summary && summary.myTasks.length === 0 && totalTasks > 0 && (
+          <div className="mb-10 bg-white border border-brand-300 px-6 py-5 flex items-center gap-4">
+            <div className="w-10 h-10 bg-emerald-50 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-brand-900">All caught up</p>
+              <p className="text-xs text-brand-400">No tasks are currently assigned to you.</p>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase mb-4">
+              Organizations
+            </h2>
+            {orgs.length === 0 ? (
+              <div className="text-center py-20 border border-dashed border-brand-300">
+                <div className="w-14 h-14 border border-brand-300 flex items-center justify-center mx-auto mb-5">
+                  <svg className="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-brand-900 mb-2 font-heading">
+                  No organizations yet
+                </h3>
+                <p className="text-brand-500 max-w-sm mx-auto text-sm">
+                  Create your first organization to start collaborating with your team.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {orgs.map((org, i) => {
+                  const tone = SEAL_TONES[i % SEAL_TONES.length];
+                  return (
+                    <Link
+                      key={org._id}
+                      to={`/organizations/${org._id}`}
+                      className="group block bg-white border border-brand-300 hover:border-brand-800 hover:shadow-[0_2px_12px_rgba(20,27,45,0.08)] transition-all"
+                    >
+                      <div className="flex items-start gap-4 p-5 pb-4">
+                        <div
+                          className="w-11 h-11 flex items-center justify-center shrink-0 text-[15px] font-semibold font-heading"
+                          style={{ backgroundColor: tone.bg, color: tone.fg }}
+                        >
+                          {initialsOf(org.name)}
+                        </div>
+                        <div className="min-w-0 pt-0.5">
+                          <h3 className="font-semibold text-brand-900 truncate group-hover:text-brand-800">
+                            {org.name}
+                          </h3>
+                          <p className="text-xs text-brand-400 mt-1 tracking-wide uppercase">
+                            {org.members.length} {org.members.length === 1 ? 'Member' : 'Members'}
+                          </p>
+                        </div>
+                      </div>
+                      {org.description && (
+                        <p className="px-5 text-sm text-brand-500 line-clamp-2 leading-relaxed">
+                          {org.description}
+                        </p>
+                      )}
+                      <div className="mt-4 px-5 py-3 border-t border-brand-200 flex items-center gap-1.5">
+                        {org.members.slice(0, 5).map((m) => (
+                          <div
+                            key={m.user._id}
+                            className="w-6 h-6 bg-brand-100 border border-white ring-1 ring-brand-300 flex items-center justify-center text-[9px] font-semibold text-brand-600 -ml-1.5 first:ml-0"
+                          >
+                            {m.user.name?.[0]?.toUpperCase() || '?'}
+                          </div>
+                        ))}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="lg:col-span-1">
+            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase mb-4">
+              Recent Activity
+            </h2>
+            <div className="bg-white border border-brand-300">
+              {summary && summary.recentActivity.length > 0 ? (
+                <div className="divide-y divide-brand-200">
+                  {summary.recentActivity.map((activity) => {
+                    const style = ACTIVITY_ICONS[activity.action] || DEFAULT_ACTIVITY_ICON;
+                    return (
+                      <div key={activity._id} className="px-5 py-3.5 flex gap-3">
+                        <div className={`w-7 h-7 ${style.bg} flex items-center justify-center shrink-0 mt-0.5`}>
+                          <svg className={`w-3.5 h-3.5 ${style.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={style.d} />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-brand-500 leading-snug">
+                            <span className="font-medium text-brand-900">{activity.user?.name || 'Someone'}</span>
+                            {' '}
+                            <span>{activity.details}</span>
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[11px] text-brand-400">{getTimeAgo(activity.createdAt)}</span>
+                            {activity.project && (
+                              <>
+                                <span className="text-brand-300">&middot;</span>
+                                <Link
+                                  to={`/projects/${activity.project._id}`}
+                                  className="text-[11px] text-brand-800 hover:text-brand-700 font-medium transition-colors"
+                                >
+                                  {activity.project.name}
+                                </Link>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="px-5 py-8 text-center">
+                  <p className="text-sm text-brand-400">No activity yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, icon }) {
+  return (
+    <div className="bg-white border border-brand-300 p-5">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase">{label}</span>
+        <div className="w-8 h-8 bg-brand-100 flex items-center justify-center">
+          <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={icon} />
+          </svg>
+        </div>
+      </div>
+      <p className="text-[28px] leading-none text-brand-900 font-heading tracking-tight">{value}</p>
     </div>
   );
 }

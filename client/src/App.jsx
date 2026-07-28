@@ -18,7 +18,7 @@ function PublicRoute({ children }) {
 
 export default function App() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-brand-50">
       <Navbar />
       <Routes>
         <Route
