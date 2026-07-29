@@ -37,7 +37,6 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [], user
       setPriority(data.priority);
       setAssignee(data.assignee?._id || '');
     } catch (err) {
-      console.error(err);
     }
   };
 
@@ -49,7 +48,6 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [], user
       onUpdate(updated);
       setEditing(false);
     } catch (err) {
-      console.error(err);
     } finally {
       setSaving(false);
     }
@@ -63,7 +61,6 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [], user
       setFullTask((prev) => ({ ...prev, comments }));
       setCommentText('');
     } catch (err) {
-      console.error(err);
     }
   };
 
@@ -72,7 +69,6 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [], user
       await api.delete(`/tasks/${task._id}/comments/${commentId}`);
       setFullTask((prev) => ({ ...prev, comments: prev.comments.filter((c) => c._id !== commentId) }));
     } catch (err) {
-      console.error(err);
     }
   };
 
@@ -82,7 +78,6 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [], user
       onUpdate({ _id: task._id, _deleted: true });
       onClose();
     } catch (err) {
-      console.error(err);
     }
   };
 

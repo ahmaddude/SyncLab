@@ -22,7 +22,6 @@ export default function ActivityLog({ projectId }) {
       const data = await api.get(`/activity?project=${projectId}`);
       setActivities(data);
     } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }

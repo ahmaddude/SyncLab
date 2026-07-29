@@ -34,7 +34,6 @@ export default function Chat({ workspaceId }) {
       const data = await api.get(`/chat?workspace=${workspaceId}`);
       setMessages(data);
     } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }

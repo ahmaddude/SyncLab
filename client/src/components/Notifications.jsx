@@ -43,7 +43,6 @@ export default function Notifications() {
       const data = await api.get('/notifications');
       setNotifications(data);
     } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -54,7 +53,6 @@ export default function Notifications() {
       const data = await api.get('/notifications/unread');
       setUnreadCount(data.count);
     } catch (err) {
-      console.error(err);
     }
   };
 
@@ -64,7 +62,6 @@ export default function Notifications() {
       setUnreadCount(0);
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     } catch (err) {
-      console.error(err);
     }
   };
 
@@ -74,7 +71,6 @@ export default function Notifications() {
       setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, read: true } : n)));
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
-      console.error(err);
     }
   };
 

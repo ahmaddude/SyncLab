@@ -19,7 +19,6 @@ export default function DocumentList({ workspaceId, canManage = false }) {
       const data = await api.get(`/documents?workspace=${workspaceId}`);
       setDocs(data);
     } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -34,7 +33,6 @@ export default function DocumentList({ workspaceId, canManage = false }) {
       setTitle('');
       setShowCreate(false);
     } catch (err) {
-      console.error(err);
     } finally {
       setCreating(false);
     }
@@ -47,7 +45,6 @@ export default function DocumentList({ workspaceId, canManage = false }) {
       setShowConfirm(false);
       setDeleteId(null);
     } catch (err) {
-      console.error(err);
     }
   };
 

@@ -39,7 +39,6 @@ export function SocketProvider({ children }) {
     });
 
     s.on('connect_error', (err) => {
-      console.error('Socket connection error:', err.message);
     });
 
     socketRef.current = s;
