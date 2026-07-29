@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -52,11 +53,11 @@ export default function CalendarWidget({ tasks = [] }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-7 text-center text-[10px] font-semibold text-brand-400 uppercase tracking-wider py-2 border-b border-brand-700">
+      <div className="grid grid-cols-7 text-center text-[11px] font-semibold text-brand-400 uppercase tracking-wider py-2.5 border-b border-brand-700">
         {DAY_NAMES.map(d => <div key={d}>{d}</div>)}
       </div>
 
-      <div className="grid grid-cols-7 text-center">
+      <div className="grid grid-cols-7 text-center pb-1">
         {days.map((day, i) => {
           if (day === null) return <div key={`e${i}`} />;
           const key = `${year}-${pad(month + 1)}-${pad(day)}`;
@@ -67,14 +68,17 @@ export default function CalendarWidget({ tasks = [] }) {
             <button
               key={key}
               onClick={() => setSelectedKey(isSelected ? null : key)}
-              className={`relative py-1.5 text-sm transition-colors ${
+              className={`relative py-2.5 text-sm transition-colors ${
                 isSelected ? 'bg-gold-400 text-brand-950 font-semibold' :
-                isToday ? 'text-gold-400 font-semibold' : 'text-brand-300 hover:text-gold-400 hover:bg-brand-700'
-              }`}
+                isToday ? 'text-gold-400 font-semibold' :
+                hasTasks ? 'text-white font-medium' : 'text-brand-300 hover:text-gold-400 hover:bg-brand-700'
+              } ${hasTasks && !isSelected ? 'bg-brand-700/60' : ''}`}
             >
               {day}
               {hasTasks && !isSelected && (
-                <span className={`absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${isToday ? 'bg-gold-400' : 'bg-brand-400'}`} />
+                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center w-4 h-4 text-[9px] font-bold text-brand-950 bg-gold-400 rounded-full">
+                  {dueMap[`${year}-${pad(month + 1)}-${pad(day)}`].length}
+                </span>
               )}
             </button>
           );
@@ -86,14 +90,18 @@ export default function CalendarWidget({ tasks = [] }) {
           {selectedTasks.length > 0 ? (
             <div className="px-3 py-2 max-h-32 overflow-y-auto space-y-1">
               {selectedTasks.map(task => (
-                <div key={task._id} className="text-xs text-brand-300 truncate">
-                  <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1.5 ${
+                <Link
+                  key={task._id}
+                  to={`/projects/${task.project?._id || ''}`}
+                  className="flex items-center gap-1.5 text-xs text-brand-300 hover:text-gold-400 truncate transition-colors"
+                >
+                  <span className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
                     task.priority === 'urgent' ? 'bg-red-400' :
                     task.priority === 'high' ? 'bg-amber-400' :
                     task.priority === 'medium' ? 'bg-blue-400' : 'bg-brand-400'
                   }`} />
-                  {task.title}
-                </div>
+                  <span className="truncate">{task.title}</span>
+                </Link>
               ))}
             </div>
           ) : (
