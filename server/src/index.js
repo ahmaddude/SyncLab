@@ -52,6 +52,4 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`SyncLab server running on port ${PORT}`);
-});
+server.listen(PORT);
