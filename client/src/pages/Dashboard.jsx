@@ -191,17 +191,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {summary && (
-          <div className="mb-12">
-            <p className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">
-              Calendar
-            </p>
-            <div className="max-w-md mx-auto">
-              <CalendarWidget tasks={summary.tasksWithDueDates} />
-            </div>
-          </div>
-        )}
-
         {summary && summary.myTasks.length > 0 && (
           <div className="mb-10 border border-brand-200">
             <div className="bg-brand-800 px-6 py-4 flex items-center justify-between">
@@ -256,10 +245,16 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">
-              Organizations
-            </h2>
-            {orgs.length === 0 ? (
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">
+              Calendar
+            </p>
+            <CalendarWidget tasks={summary?.tasksWithDueDates || []} />
+
+            <div className="mt-14">
+              <h2 className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">
+                Organizations
+              </h2>
+          {orgs.length === 0 ? (
               <div className="text-center py-20 border border-dashed border-brand-300">
                 <div className="w-14 h-14 border border-gold-400 flex items-center justify-center mx-auto mb-5 bg-brand-800">
                   <svg className="w-6 h-6 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -320,6 +315,7 @@ export default function Dashboard() {
                 })}
               </div>
             )}
+        </div>
           </div>
 
           <div className="lg:col-span-1">
