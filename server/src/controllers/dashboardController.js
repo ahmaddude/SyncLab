@@ -34,6 +34,12 @@ exports.getSummary = async (req, res) => {
       .sort({ dueDate: 1, createdAt: -1 })
       .limit(8);
 
+    const tasksWithDueDates = await Task.find({ project: { $in: projectIds }, dueDate: { $ne: null } })
+      .populate('project', 'name')
+      .select('title dueDate status priority project assignee')
+      .sort({ dueDate: 1 })
+      .limit(50);
+
     const recentActivity = await Activity.find({ project: { $in: projectIds } })
       .populate('user', 'name email avatar')
       .populate('project', 'name')
@@ -47,6 +53,7 @@ exports.getSummary = async (req, res) => {
       projectCount: projects.length,
       taskStats,
       myTasks,
+      tasksWithDueDates,
       recentActivity,
     });
   } catch (error) {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
+import CalendarWidget from '../components/CalendarWidget';
 
 const SEAL_TONES = [
   { bg: '#1B2A4A', fg: '#C9A66B' },
@@ -187,6 +188,17 @@ export default function Dashboard() {
             <StatCard label="Total Tasks" value={totalTasks} icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             <StatCard label="In Progress" value={summary.taskStats.in_progress} icon="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             <StatCard label="Completed" value={summary.taskStats.done} icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </div>
+        )}
+
+        {summary && (
+          <div className="mb-12">
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">
+              Calendar
+            </p>
+            <div className="max-w-md mx-auto">
+              <CalendarWidget tasks={summary.tasksWithDueDates} />
+            </div>
           </div>
         )}
 
