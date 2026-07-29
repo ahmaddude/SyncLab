@@ -15,10 +15,8 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-brand-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <Link to="/dashboard" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 bg-brand-800 flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+          <div className="w-8 h-8 flex items-center justify-center" style={{ backgroundColor: '#1c2742' }}>
+            <span className="text-[15px] font-bold text-[#fbbf24] font-heading">S</span>
           </div>
           <span className="text-lg font-bold text-brand-900 font-heading tracking-tight">SyncLab</span>
         </Link>

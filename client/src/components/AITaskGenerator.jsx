@@ -88,10 +88,8 @@ export default function AITaskGenerator({ projectId, members = [], onTasksCreate
       <div className="bg-white border border-brand-300 w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl animate-scale-in" onClick={(e) => e.stopPropagation()}>
         <div className="px-6 py-4 border-b border-brand-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-brand-800 flex items-center justify-center">
-              <svg className="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+            <div className="w-8 h-8 flex items-center justify-center" style={{ backgroundColor: '#1c2742' }}>
+              <span className="text-[15px] font-bold text-[#fbbf24] font-heading">S</span>
             </div>
             <div>
               <h2 className="text-[15px] font-semibold text-brand-900 font-heading">AI Task Generator</h2>
