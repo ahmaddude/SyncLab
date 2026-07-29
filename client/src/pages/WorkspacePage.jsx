@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import Chat from '../components/Chat';
 import Presence from '../components/Presence';
 import DocumentList from '../components/DocumentList';
 
 export default function WorkspacePage() {
+  const { user } = useAuth();
   const { id } = useParams();
   const [workspace, setWorkspace] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [myRole, setMyRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
@@ -26,6 +29,13 @@ export default function WorkspacePage() {
       ]);
       setWorkspace(wsData);
       setProjects(projData);
+
+      const orgId = wsData.organization?._id || wsData.organization;
+      if (orgId) {
+        const orgData = await api.get(`/orgs/${orgId}`);
+        const member = orgData.members.find((m) => m.user._id === user?.id);
+        setMyRole(member?.role || null);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -99,11 +109,13 @@ export default function WorkspacePage() {
             <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">{workspace.name}</h1>
             {workspace.description && <p className="text-brand-500 mt-2">{workspace.description}</p>}
           </div>
-          <button onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            New Project
-          </button>
+          {(myRole === 'owner' || myRole === 'admin') && (
+            <button onClick={() => setShowCreate(true)}
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              New Project
+            </button>
+          )}
         </div>
 
         {workspace.organization && (
@@ -176,8 +188,10 @@ export default function WorkspacePage() {
                       )}
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-brand-200">
                         <span className="text-xs text-brand-500">by {project.createdBy?.name || 'Unknown'}</span>
-                        <button onClick={(e) => { e.preventDefault(); toggleArchive(project); }}
-                          className="text-xs text-brand-500 hover:text-[#9B3B3B] transition-colors">Archive</button>
+                        {(myRole === 'owner' || myRole === 'admin') && (
+                          <button onClick={(e) => { e.preventDefault(); toggleArchive(project); }}
+                            className="text-xs text-brand-500 hover:text-[#9B3B3B] transition-colors">Archive</button>
+                        )}
                       </div>
                     </Link>
                   ))}
@@ -207,7 +221,7 @@ export default function WorkspacePage() {
         )}
 
         <div className="mt-8">
-          <DocumentList workspaceId={id} />
+          <DocumentList workspaceId={id} canManage={myRole === 'owner' || myRole === 'admin'} />
         </div>
 
         <div className="mt-8">

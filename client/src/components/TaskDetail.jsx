@@ -12,7 +12,7 @@ const PRIORITIES = {
 
 const STATUSES = { todo: 'To Do', in_progress: 'In Progress', review: 'Review', done: 'Done' };
 
-export default function TaskDetail({ task, onClose, onUpdate, members = [] }) {
+export default function TaskDetail({ task, onClose, onUpdate, members = [], userRole = null }) {
   const { user } = useAuth();
   const [fullTask, setFullTask] = useState(null);
   const [commentText, setCommentText] = useState('');
@@ -102,7 +102,7 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [] }) {
         <div className="p-6 border-b border-brand-200 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-xl z-10">
           <h2 className="text-lg font-semibold text-brand-900 font-heading">Task Details</h2>
           <div className="flex items-center gap-2">
-            {!editing && (
+            {!editing && (userRole === 'owner' || userRole === 'admin') && (
               <button onClick={() => setEditing(true)}
                 className="flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium text-brand-500 bg-brand-50 border border-brand-300 hover:border-brand-800 hover:text-brand-900 transition-colors">
                 Edit
@@ -165,6 +165,11 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [] }) {
               <div>
                 <h3 className="text-xl font-semibold text-brand-900 mb-2 font-heading">{fullTask.title}</h3>
                 {fullTask.description && <p className="text-brand-500 text-sm leading-relaxed whitespace-pre-wrap">{fullTask.description}</p>}
+              {fullTask.dueDate && (
+                <div className="text-xs text-brand-500">
+                  Due: {new Date(fullTask.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
+              )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -192,8 +197,10 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [] }) {
                 </div>
               </div>
 
-              <button onClick={() => setShowConfirm(true)}
-                className="text-sm text-red-400 hover:text-red-300 font-medium transition-colors">Delete task</button>
+              {(userRole === 'owner' || userRole === 'admin') && (
+                <button onClick={() => setShowConfirm(true)}
+                  className="text-sm text-red-400 hover:text-red-300 font-medium transition-colors">Delete task</button>
+              )}
             </>
           )}
 

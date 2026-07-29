@@ -2,6 +2,8 @@ const Task = require('../models/Task');
 const Activity = require('../models/Activity');
 const Notification = require('../models/Notification');
 const { sendNotification } = require('../socket');
+const { getOrgFromTask, getOrgFromProject, getUserRole } = require('../middleware/permissions');
+const Project = require('../models/Project');
 
 const logActivity = (action, userId, projectId, taskId, details) => {
   Activity.create({ action, user: userId, project: projectId, task: taskId, details });
@@ -18,6 +20,13 @@ const createNotification = async (data) => {
 exports.createTask = async (req, res) => {
   try {
     const { title, description, status, priority, project, assignee, dueDate } = req.body;
+
+    const projectDoc = await Project.findById(project);
+    if (!projectDoc) return res.status(404).json({ message: 'Project not found' });
+
+    const orgId = await getOrgFromProject(project);
+    const role = await getUserRole(orgId, req.user._id);
+    if (!role) return res.status(403).json({ message: 'Not a member of this organization' });
 
     const maxOrder = await Task.findOne({ project, status }).sort('-order');
     const order = maxOrder ? maxOrder.order + 1 : 0;
@@ -101,6 +110,12 @@ exports.updateTask = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
+    const orgId = await getOrgFromTask(req.params.id);
+    const role = await getUserRole(orgId, req.user._id);
+    if (!role || !['owner', 'admin'].includes(role)) {
+      return res.status(403).json({ message: 'Only owners and admins can edit task details' });
+    }
+
     const { title, description, status, priority, assignee, dueDate } = req.body;
     const oldStatus = task.status;
     const oldAssignee = task.assignee?.toString();
@@ -147,6 +162,16 @@ exports.updateTask = async (req, res) => {
 exports.reorderTasks = async (req, res) => {
   try {
     const { tasks } = req.body;
+    if (!tasks || tasks.length === 0) {
+      return res.status(400).json({ message: 'No tasks provided' });
+    }
+
+    const firstTask = await Task.findById(tasks[0]._id);
+    if (!firstTask) return res.status(404).json({ message: 'Task not found' });
+
+    const orgId = await getOrgFromProject(firstTask.project);
+    const role = await getUserRole(orgId, req.user._id);
+    if (!role) return res.status(403).json({ message: 'Not a member of this organization' });
 
     const bulkOps = tasks.map((t) => ({
       updateOne: {
@@ -156,7 +181,6 @@ exports.reorderTasks = async (req, res) => {
     }));
 
     await Task.bulkWrite(bulkOps);
-
     res.json({ message: 'Tasks reordered' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -168,6 +192,12 @@ exports.deleteTask = async (req, res) => {
     const task = await Task.findById(req.params.id);
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
+    }
+
+    const orgId = await getOrgFromTask(req.params.id);
+    const role = await getUserRole(orgId, req.user._id);
+    if (!role || !['owner', 'admin'].includes(role)) {
+      return res.status(403).json({ message: 'Only owners and admins can delete tasks' });
     }
 
     logActivity('task_deleted', req.user._id, task.project, task._id,
@@ -188,6 +218,10 @@ exports.addComment = async (req, res) => {
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
     }
+
+    const orgId = await getOrgFromTask(req.params.id);
+    const role = await getUserRole(orgId, req.user._id);
+    if (!role) return res.status(403).json({ message: 'Not a member of this organization' });
 
     task.comments.push({ text, author: req.user._id });
     await task.save();

@@ -1,5 +1,6 @@
 const Workspace = require('../models/Workspace');
 const Organization = require('../models/Organization');
+const { getUserRole } = require('../middleware/permissions');
 
 const checkOrgAccess = async (orgId, userId) => {
   const org = await Organization.findById(orgId);
@@ -12,9 +13,9 @@ exports.createWorkspace = async (req, res) => {
   try {
     const { name, description, organization } = req.body;
 
-    const org = await checkOrgAccess(organization, req.user._id);
-    if (!org) {
-      return res.status(403).json({ message: 'Not a member of this organization' });
+    const role = await getUserRole(organization, req.user._id);
+    if (role !== 'owner') {
+      return res.status(403).json({ message: 'Only the owner can create workspaces' });
     }
 
     const workspace = await Workspace.create({
@@ -72,6 +73,48 @@ exports.getWorkspace = async (req, res) => {
     }
 
     res.json(workspace);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateWorkspace = async (req, res) => {
+  try {
+    const workspace = await Workspace.findById(req.params.id);
+    if (!workspace) {
+      return res.status(404).json({ message: 'Workspace not found' });
+    }
+
+    const role = await getUserRole(workspace.organization, req.user._id);
+    if (role !== 'owner') {
+      return res.status(403).json({ message: 'Only the owner can update workspaces' });
+    }
+
+    const { name, description } = req.body;
+    if (name) workspace.name = name;
+    if (description !== undefined) workspace.description = description;
+    await workspace.save();
+
+    res.json(workspace);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteWorkspace = async (req, res) => {
+  try {
+    const workspace = await Workspace.findById(req.params.id);
+    if (!workspace) {
+      return res.status(404).json({ message: 'Workspace not found' });
+    }
+
+    const role = await getUserRole(workspace.organization, req.user._id);
+    if (role !== 'owner') {
+      return res.status(403).json({ message: 'Only the owner can delete workspaces' });
+    }
+
+    await workspace.deleteOne();
+    res.json({ message: 'Workspace deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

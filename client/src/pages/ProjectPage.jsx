@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import KanbanBoard from '../components/KanbanBoard';
 import TaskDetail from '../components/TaskDetail';
 import CreateTask from '../components/CreateTask';
@@ -8,10 +9,12 @@ import AITaskGenerator from '../components/AITaskGenerator';
 import ActivityLog from '../components/ActivityLog';
 
 export default function ProjectPage() {
+  const { user } = useAuth();
   const { id } = useParams();
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [members, setMembers] = useState([]);
+  const [myRole, setMyRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -32,6 +35,8 @@ export default function ProjectPage() {
       setProject(projData);
       setTasks(taskData);
       setMembers(orgData.members.map((m) => m.user));
+      const member = orgData.members.find((m) => m.user._id === user?.id);
+      setMyRole(member?.role || null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -178,7 +183,7 @@ export default function ProjectPage() {
         )}
 
         {selectedTask && (
-          <TaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} onUpdate={handleTaskUpdate} members={members} />
+          <TaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} onUpdate={handleTaskUpdate} members={members} userRole={myRole} />
         )}
 
         {showAI && (

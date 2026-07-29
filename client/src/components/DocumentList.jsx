@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../utils/api';
 import ConfirmDialog from './ConfirmDialog';
 
-export default function DocumentList({ workspaceId }) {
+export default function DocumentList({ workspaceId, canManage = false }) {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -59,11 +59,13 @@ export default function DocumentList({ workspaceId }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-[15px] font-semibold text-brand-900 font-heading">Documents</h2>
-        <button onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 transition-colors">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          New Doc
-        </button>
+        {canManage && (
+          <button onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 transition-colors">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            New Doc
+          </button>
+        )}
       </div>
 
       {showCreate && (
@@ -111,8 +113,10 @@ export default function DocumentList({ workspaceId }) {
                   </p>
                 </div>
               </div>
-              <button onClick={(e) => { e.preventDefault(); setDeleteId(doc._id); setShowConfirm(true); }}
-                className="text-xs text-neutral-500 hover:text-red-400 shrink-0 ml-4 transition-all">Delete</button>
+              {canManage && (
+                <button onClick={(e) => { e.preventDefault(); setDeleteId(doc._id); setShowConfirm(true); }}
+                  className="text-xs text-neutral-500 hover:text-red-400 shrink-0 ml-4 transition-all">Delete</button>
+              )}
             </Link>
           ))}
         </div>

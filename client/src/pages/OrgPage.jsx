@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function OrgPage() {
+  const { user } = useAuth();
   const { id } = useParams();
   const [org, setOrg] = useState(null);
   const [workspaces, setWorkspaces] = useState([]);
@@ -76,6 +78,12 @@ export default function OrgPage() {
     );
   }
 
+  const myRole = org.members.find((m) => m.user._id === user?.id)?.role;
+  const canInvite = myRole === 'owner' || myRole === 'admin';
+  const canManageWs = myRole === 'owner';
+  const canRemove = myRole === 'owner' || myRole === 'admin';
+  const canChangeRole = myRole === 'owner';
+
   return (
     <div className="min-h-screen">
       <div className="h-[3px] bg-brand-800" />
@@ -96,20 +104,24 @@ export default function OrgPage() {
             {org.description && <p className="text-brand-500 mt-2">{org.description}</p>}
           </div>
           <div className="flex gap-3">
-            <button
-              onClick={() => setShowInvite(true)}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-500 bg-white border border-brand-300 hover:border-gold-400 hover:text-brand-900 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-              Invite
-            </button>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gold-500 hover:bg-gold-600 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              New Workspace
-            </button>
+            {canInvite && (
+              <button
+                onClick={() => setShowInvite(true)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-500 bg-white border border-brand-300 hover:border-gold-400 hover:text-brand-900 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                Invite
+              </button>
+            )}
+            {canManageWs && (
+              <button
+                onClick={() => setShowCreate(true)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gold-500 hover:bg-gold-600 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                New Workspace
+              </button>
+            )}
           </div>
         </div>
 
@@ -245,12 +257,14 @@ export default function OrgPage() {
             <div className="border border-brand-200">
               <div className="bg-brand-800 px-5 py-3 flex items-center justify-between">
                 <span className="text-[11px] font-semibold tracking-[0.18em] text-gold-400 uppercase">{org.members.length} Members</span>
-                <button
-                  onClick={() => setShowInvite(true)}
-                  className="text-[11px] font-semibold tracking-wide text-gold-400 hover:text-gold-400 uppercase transition-colors"
-                >
-                  + Invite
-                </button>
+                {canInvite && (
+                  <button
+                    onClick={() => setShowInvite(true)}
+                    className="text-[11px] font-semibold tracking-wide text-gold-400 hover:text-gold-400 uppercase transition-colors"
+                  >
+                    + Invite
+                  </button>
+                )}
               </div>
               <div className="bg-white divide-y divide-brand-100">
                 {org.members.map((m) => {
@@ -281,6 +295,43 @@ export default function OrgPage() {
                           </p>
                         )}
                       </div>
+                      {m.user._id !== user?.id && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          {canChangeRole && m.role !== 'owner' && (
+                            <select
+                              value={m.role}
+                              onChange={async (e) => {
+                                try {
+                                  await api.put(`/orgs/${id}/members/${m.user._id}`, { role: e.target.value });
+                                  fetchData();
+                                } catch (err) {
+                                  setError(err.message);
+                                }
+                              }}
+                              className="text-[10px] bg-transparent text-brand-500 border border-brand-200 rounded px-1 py-0.5 focus:outline-none"
+                            >
+                              <option value="admin">Admin</option>
+                              <option value="member">Member</option>
+                            </select>
+                          )}
+                          {canRemove && m.role !== 'owner' && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await api.delete(`/orgs/${id}/members/${m.user._id}`);
+                                  fetchData();
+                                } catch (err) {
+                                  setError(err.message);
+                                }
+                              }}
+                              className="text-brand-400 hover:text-[#9B3B3B] transition-colors p-1"
+                              title="Remove member"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}

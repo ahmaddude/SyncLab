@@ -1,6 +1,7 @@
 const Project = require('../models/Project');
 const Workspace = require('../models/Workspace');
 const Organization = require('../models/Organization');
+const { getUserRole } = require('../middleware/permissions');
 
 const checkWorkspaceAccess = async (workspaceId, userId) => {
   const workspace = await Workspace.findById(workspaceId);
@@ -18,6 +19,11 @@ exports.createProject = async (req, res) => {
     const workspace = await checkWorkspaceAccess(workspaceId, req.user._id);
     if (!workspace) {
       return res.status(403).json({ message: 'Not a member of this workspace' });
+    }
+
+    const role = await getUserRole(workspace.organization, req.user._id);
+    if (!role || !['owner', 'admin'].includes(role)) {
+      return res.status(403).json({ message: 'Only owners and admins can create projects' });
     }
 
     const project = await Project.create({
@@ -95,6 +101,11 @@ exports.updateProject = async (req, res) => {
       return res.status(403).json({ message: 'Not a member of this workspace' });
     }
 
+    const role = await getUserRole(workspace.organization, req.user._id);
+    if (!role || !['owner', 'admin'].includes(role)) {
+      return res.status(403).json({ message: 'Only owners and admins can update projects' });
+    }
+
     const { name, description, status } = req.body;
     if (name) project.name = name;
     if (description !== undefined) project.description = description;
@@ -102,6 +113,33 @@ exports.updateProject = async (req, res) => {
 
     await project.save();
     res.json(project);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const workspace = await checkWorkspaceAccess(
+      project.workspace,
+      req.user._id
+    );
+    if (!workspace) {
+      return res.status(403).json({ message: 'Not a member of this workspace' });
+    }
+
+    const role = await getUserRole(workspace.organization, req.user._id);
+    if (role !== 'owner') {
+      return res.status(403).json({ message: 'Only the owner can delete projects' });
+    }
+
+    await project.deleteOne();
+    res.json({ message: 'Project deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

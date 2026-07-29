@@ -1,8 +1,18 @@
 const Document = require('../models/Document');
+const Workspace = require('../models/Workspace');
+const { getUserRole } = require('../middleware/permissions');
 
 exports.createDocument = async (req, res) => {
   try {
     const { title, workspace } = req.body;
+
+    const ws = await Workspace.findById(workspace);
+    if (!ws) return res.status(404).json({ message: 'Workspace not found' });
+
+    const role = await getUserRole(ws.organization, req.user._id);
+    if (!role || !['owner', 'admin'].includes(role)) {
+      return res.status(403).json({ message: 'Only admins and owners can create documents' });
+    }
 
     const doc = await Document.create({
       title,
@@ -58,6 +68,12 @@ exports.updateDocument = async (req, res) => {
       return res.status(404).json({ message: 'Document not found' });
     }
 
+    const ws = await Workspace.findById(doc.workspace);
+    if (!ws) return res.status(404).json({ message: 'Workspace not found' });
+
+    const role = await getUserRole(ws.organization, req.user._id);
+    if (!role) return res.status(403).json({ message: 'Not a member of this organization' });
+
     if (title !== undefined) doc.title = title;
     if (content !== undefined) doc.content = content;
 
@@ -73,6 +89,14 @@ exports.deleteDocument = async (req, res) => {
     const doc = await Document.findById(req.params.id);
     if (!doc) {
       return res.status(404).json({ message: 'Document not found' });
+    }
+
+    const ws = await Workspace.findById(doc.workspace);
+    if (!ws) return res.status(404).json({ message: 'Workspace not found' });
+
+    const role = await getUserRole(ws.organization, req.user._id);
+    if (!role || !['owner', 'admin'].includes(role)) {
+      return res.status(403).json({ message: 'Only admins and owners can delete documents' });
     }
 
     await doc.deleteOne();
