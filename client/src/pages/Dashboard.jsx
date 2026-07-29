@@ -115,7 +115,7 @@ export default function Dashboard() {
               Workspace Overview
             </p>
             <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">
-              {user?.name ? `${user.name.split(' ')[0]}'s Dashboard` : 'Dashboard'}
+              {user?.name ? `Welcome back, ${user.name.split(' ')[0]}!` : 'Dashboard'}
             </h1>
           </div>
           <button
