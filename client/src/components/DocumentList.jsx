@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../utils/api';
+import ConfirmDialog from './ConfirmDialog';
 
 export default function DocumentList({ workspaceId }) {
   const [docs, setDocs] = useState([]);
@@ -8,6 +9,8 @@ export default function DocumentList({ workspaceId }) {
   const [showCreate, setShowCreate] = useState(false);
   const [title, setTitle] = useState('');
   const [creating, setCreating] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   useEffect(() => { fetchDocs(); }, [workspaceId]);
 
@@ -37,19 +40,19 @@ export default function DocumentList({ workspaceId }) {
     }
   };
 
-  const handleDelete = async (e, docId) => {
-    e.preventDefault();
-    if (!confirm('Delete this document?')) return;
+  const handleDelete = async () => {
     try {
-      await api.delete(`/documents/${docId}`);
-      setDocs(docs.filter((d) => d._id !== docId));
+      await api.delete(`/documents/${deleteId}`);
+      setDocs(docs.filter((d) => d._id !== deleteId));
+      setShowConfirm(false);
+      setDeleteId(null);
     } catch (err) {
       console.error(err);
     }
   };
 
   if (loading) {
-    return <div className="text-sm text-brand-400 py-4">Loading documents...</div>;
+    return <div className="text-sm text-brand-500 py-4">Loading documents...</div>;
   }
 
   return (
@@ -103,17 +106,26 @@ export default function DocumentList({ workspaceId }) {
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-medium text-brand-900 truncate group-hover:text-brand-800 transition-colors">{doc.title}</h3>
-                  <p className="text-xs text-brand-400">
+                  <p className="text-xs text-brand-500">
                     Edited {new Date(doc.updatedAt).toLocaleDateString()} by {doc.createdBy?.name || 'Unknown'}
                   </p>
                 </div>
               </div>
-              <button onClick={(e) => handleDelete(e, doc._id)}
-                className="text-xs text-brand-400 hover:text-[#9B3B3B] opacity-0 group-hover:opacity-100 shrink-0 ml-4 transition-all">Delete</button>
+              <button onClick={(e) => { e.preventDefault(); setDeleteId(doc._id); setShowConfirm(true); }}
+                className="text-xs text-neutral-500 hover:text-red-400 shrink-0 ml-4 transition-all">Delete</button>
             </Link>
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={showConfirm}
+        title="Delete document?"
+        message="This action cannot be undone. The document and its content will be permanently deleted."
+        confirmLabel="Delete"
+        onConfirm={handleDelete}
+        onCancel={() => { setShowConfirm(false); setDeleteId(null); }}
+      />
     </div>
   );
 }

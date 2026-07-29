@@ -27,7 +27,7 @@ export default function Presence({ orgId }) {
         ))}
       </div>
       {onlineMembers.length > 6 && (
-        <span className="text-xs text-brand-400 font-medium">+{onlineMembers.length - 6} more</span>
+        <span className="text-xs text-brand-500 font-medium">+{onlineMembers.length - 6} more</span>
       )}
       <div className="flex items-center gap-1.5 ml-1">
         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />

@@ -63,7 +63,7 @@ export default function OrgPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-        <div className="w-7 h-7 border-2 border-brand-300 border-t-brand-800 rounded-full animate-spin" />
+        <div className="w-7 h-7 border-2 border-brand-300 border-t-gold-500 rounded-full animate-spin" />
       </div>
     );
   }
@@ -80,6 +80,7 @@ export default function OrgPage() {
     <div className="min-h-screen">
       <div className="h-[3px] bg-brand-800" />
       <div className="h-px bg-gold-400" />
+      <div className="h-px bg-brand-800 mt-px" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
         <div className="mb-2 text-sm text-brand-500">
@@ -90,21 +91,21 @@ export default function OrgPage() {
 
         <div className="flex items-center justify-between mb-10 pb-6 border-b border-brand-300">
           <div>
-            <p className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase mb-2">Organization</p>
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-2">Organization</p>
             <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">{org.name}</h1>
             {org.description && <p className="text-brand-500 mt-2">{org.description}</p>}
           </div>
           <div className="flex gap-3">
             <button
               onClick={() => setShowInvite(true)}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-500 bg-white border border-brand-300 hover:border-brand-800 hover:text-brand-900 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-500 bg-white border border-brand-300 hover:border-gold-400 hover:text-brand-900 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
               Invite
             </button>
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gold-500 hover:bg-gold-600 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
               New Workspace
@@ -119,11 +120,11 @@ export default function OrgPage() {
         )}
 
         {showInvite && (
-          <div className="mb-6 bg-white border border-brand-300">
-            <div className="px-6 py-4 border-b border-brand-200">
-              <h2 className="text-[15px] font-semibold text-brand-900 font-heading">Invite Member</h2>
+          <div className="mb-6 border border-brand-200">
+            <div className="bg-brand-800 px-6 py-4">
+              <h2 className="text-[15px] font-semibold text-white font-heading">Invite Member</h2>
             </div>
-            <form onSubmit={handleInvite} className="p-6 flex gap-3">
+            <form onSubmit={handleInvite} className="p-6 flex gap-3 bg-white">
               <input
                 type="email"
                 required
@@ -135,7 +136,7 @@ export default function OrgPage() {
               <button
                 type="submit"
                 disabled={inviting}
-                className="px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 disabled:opacity-50 transition-colors"
+                className="px-4 py-2.5 text-sm font-medium text-white bg-gold-500 hover:bg-gold-600 disabled:opacity-50 transition-colors"
               >
                 {inviting ? 'Inviting...' : 'Invite'}
               </button>
@@ -151,11 +152,11 @@ export default function OrgPage() {
         )}
 
         {showCreate && (
-          <div className="mb-6 bg-white border border-brand-300">
-            <div className="px-6 py-4 border-b border-brand-200">
-              <h2 className="text-[15px] font-semibold text-brand-900 font-heading">Create Workspace</h2>
+          <div className="mb-6 border border-brand-200">
+            <div className="bg-brand-800 px-6 py-4">
+              <h2 className="text-[15px] font-semibold text-white font-heading">Create Workspace</h2>
             </div>
-            <form onSubmit={handleCreateWorkspace} className="p-6 space-y-5">
+            <form onSubmit={handleCreateWorkspace} className="p-6 space-y-5 bg-white">
               <div>
                 <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">Name</label>
                 <input
@@ -181,7 +182,7 @@ export default function OrgPage() {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 disabled:opacity-50 transition-colors"
+                  className="px-4 py-2.5 text-sm font-medium text-white bg-gold-500 hover:bg-gold-600 disabled:opacity-50 transition-colors"
                 >
                   {creating ? 'Creating...' : 'Create'}
                 </button>
@@ -197,58 +198,95 @@ export default function OrgPage() {
           </div>
         )}
 
-        <div className="mb-10">
-          <h2 className="text-[15px] font-semibold mb-4 text-brand-900 font-heading">Members</h2>
-          <div className="flex flex-wrap gap-2">
-            {org.members.map((m) => (
-              <div
-                key={m.user._id}
-                className="flex items-center gap-2.5 px-3.5 py-2 bg-white border border-brand-300 text-sm"
-              >
-                <div className="w-7 h-7 bg-brand-100 border border-brand-300 flex items-center justify-center text-[10px] font-semibold text-brand-600">
-                  {m.user.name?.[0]?.toUpperCase() || '?'}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">Workspaces</h2>
+            {workspaces.length === 0 ? (
+              <div className="text-center py-16 border border-dashed border-brand-300">
+                <div className="w-14 h-14 border border-gold-400 flex items-center justify-center mx-auto mb-5 bg-brand-800">
+                  <svg className="w-6 h-6 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
                 </div>
-                <span className="font-medium text-brand-900">{m.user.name}</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] capitalize bg-brand-800/10 text-brand-800 border border-brand-800/20">
-                  {m.role}
-                </span>
+                <h3 className="text-lg font-semibold text-brand-900 mb-2 font-heading">No workspaces yet</h3>
+                <p className="text-brand-500 text-sm">Create one to start organizing projects.</p>
               </div>
-            ))}
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {workspaces.map((ws) => (
+                  <Link
+                    key={ws._id}
+                    to={`/workspaces/${ws._id}`}
+                    className="group block bg-white border border-brand-300 hover:border-gold-400 hover:shadow-[0_2px_12px_rgba(201,166,107,0.15)] transition-all p-6 relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gold-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-brand-800 border border-brand-700 flex items-center justify-center text-gold-400 font-bold text-sm font-heading">
+                        {ws.name[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-brand-900 group-hover:text-brand-800">{ws.name}</h3>
+                        {ws.description && (
+                          <p className="text-xs text-brand-500 line-clamp-1 mt-0.5">{ws.description}</p>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-xs text-brand-500 mt-3 pt-3 border-t border-brand-200">
+                      Created by {ws.createdBy?.name || 'Unknown'}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
 
-        <div>
-          <h2 className="text-[15px] font-semibold mb-4 text-brand-900 font-heading">Workspaces</h2>
-          {workspaces.length === 0 ? (
-            <div className="text-center py-16 bg-white border border-brand-300">
-              <p className="text-brand-500">No workspaces yet. Create one to get started.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {workspaces.map((ws) => (
-                <Link
-                  key={ws._id}
-                  to={`/workspaces/${ws._id}`}
-                  className="group block bg-white border border-brand-300 hover:border-brand-800 hover:shadow-[0_2px_12px_rgba(20,27,45,0.08)] transition-all p-6"
+          <div className="lg:col-span-1">
+            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">Members</h2>
+            <div className="border border-brand-200">
+              <div className="bg-brand-800 px-5 py-3 flex items-center justify-between">
+                <span className="text-[11px] font-semibold tracking-[0.18em] text-gold-400 uppercase">{org.members.length} Members</span>
+                <button
+                  onClick={() => setShowInvite(true)}
+                  className="text-[11px] font-semibold tracking-wide text-gold-400 hover:text-gold-400 uppercase transition-colors"
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-brand-100 border border-brand-300 flex items-center justify-center text-brand-800 font-bold text-sm">
-                      {ws.name[0].toUpperCase()}
+                  + Invite
+                </button>
+              </div>
+              <div className="bg-white divide-y divide-brand-100">
+                {org.members.map((m) => {
+                  const roleStyles = {
+                    owner: { bg: 'bg-gold-500', text: 'text-brand-900' },
+                    admin: { bg: 'bg-brand-800', text: 'text-gold-400' },
+                    member: { bg: 'bg-brand-100', text: 'text-brand-600' },
+                  };
+                  const rs = roleStyles[m.role] || roleStyles.member;
+                  return (
+                    <div key={m.user._id} className="px-5 py-4 flex items-start gap-3 hover:bg-brand-50 transition-colors">
+                      <div className="w-9 h-9 bg-brand-800 flex items-center justify-center shrink-0 text-[13px] font-semibold text-gold-400 font-heading ring-1 ring-brand-700">
+                        {m.user.name?.[0]?.toUpperCase() || '?'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-brand-900 truncate">{m.user.name}</p>
+                          <span className={`shrink-0 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${rs.bg} ${rs.text}`}>
+                            {m.role}
+                          </span>
+                        </div>
+                        {m.user.email && (
+                          <p className="text-xs text-brand-500 mt-0.5 truncate">{m.user.email}</p>
+                        )}
+                        {m.joinedAt && (
+                          <p className="text-[11px] text-brand-500 mt-1">
+                            Joined {new Date(m.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-brand-900 group-hover:text-brand-800">{ws.name}</h3>
-                      {ws.description && (
-                        <p className="text-xs text-brand-400 line-clamp-1 mt-0.5">{ws.description}</p>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-xs text-brand-500 mt-3 pt-3 border-t border-brand-200">
-                    Created by {ws.createdBy?.name || 'Unknown'}
-                  </p>
-                </Link>
-              ))}
+                  );
+                })}
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

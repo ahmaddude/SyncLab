@@ -128,7 +128,7 @@ export default function ProjectPage() {
 
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-300">
           <div>
-            <p className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase mb-1">Project</p>
+              <p className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-1">Project</p>
             <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">{project.name}</h1>
             {project.description && <p className="text-brand-500 mt-2">{project.description}</p>}
           </div>
@@ -182,7 +182,7 @@ export default function ProjectPage() {
         )}
 
         {showAI && (
-          <AITaskGenerator projectId={id} onTasksCreated={handleAITasksCreated} onClose={() => setShowAI(false)} />
+          <AITaskGenerator projectId={id} members={members} onTasksCreated={handleAITasksCreated} onClose={() => setShowAI(false)} />
         )}
       </div>
     </div>

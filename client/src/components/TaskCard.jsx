@@ -1,5 +1,5 @@
 const PRIORITIES = {
-  low: { bg: 'bg-brand-100', text: 'text-brand-500', dot: 'bg-brand-400' },
+  low: { bg: 'bg-brand-100', text: 'text-brand-600', dot: 'bg-brand-400' },
   medium: { bg: 'bg-blue-50', text: 'text-blue-600', dot: 'bg-blue-500' },
   high: { bg: 'bg-amber-50', text: 'text-amber-600', dot: 'bg-amber-500' },
   urgent: { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-500' },
@@ -34,7 +34,7 @@ export default function TaskCard({ task, onClick }) {
             <span className="text-[11px] text-brand-500 font-medium">{task.assignee.name}</span>
           </div>
         ) : (
-          <span className="text-[11px] text-brand-400 italic">Unassigned</span>
+          <span className="text-[11px] text-brand-500 italic">Unassigned</span>
         )}
 
         {task.comments?.length > 0 && (

@@ -18,7 +18,7 @@ const STATUS_MAP = {
 };
 
 const PRIORITY_MAP = {
-  low: { bg: 'bg-brand-100', text: 'text-brand-500' },
+  low: { bg: 'bg-brand-100', text: 'text-brand-600' },
   medium: { bg: 'bg-blue-50', text: 'text-blue-600' },
   high: { bg: 'bg-amber-50', text: 'text-amber-600' },
   urgent: { bg: 'bg-red-50', text: 'text-red-600' },
@@ -194,7 +194,7 @@ export default function Dashboard() {
           <div className="mb-10 border border-brand-200">
             <div className="bg-brand-800 px-6 py-4 flex items-center justify-between">
               <h2 className="text-[15px] font-semibold text-white font-heading">My Tasks</h2>
-              <span className="text-xs text-gold-300 font-medium">{summary.myTasks.length} assigned to you</span>
+              <span className="text-xs text-gold-400 font-medium">{summary.myTasks.length} assigned to you</span>
             </div>
             <div className="divide-y divide-brand-200 bg-white">
               {summary.myTasks.map((task) => {
@@ -208,7 +208,7 @@ export default function Dashboard() {
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-brand-900 group-hover:text-brand-800 truncate">{task.title}</p>
-                      <p className="text-xs text-brand-400 mt-0.5">{task.project?.name || 'Unknown project'}</p>
+                      <p className="text-xs text-brand-500 mt-0.5">{task.project?.name || 'Unknown project'}</p>
                     </div>
                     <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.bg} ${s.text}`}>
                       {s.label}
@@ -217,7 +217,7 @@ export default function Dashboard() {
                       {task.priority}
                     </span>
                     {task.dueDate && (
-                      <span className="shrink-0 text-[11px] text-brand-400 w-20 text-right">
+                      <span className="shrink-0 text-[11px] text-brand-500 w-20 text-right">
                         {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </span>
                     )}
@@ -237,7 +237,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-sm font-medium text-brand-900">All caught up</p>
-              <p className="text-xs text-brand-400">No tasks are currently assigned to you.</p>
+              <p className="text-xs text-brand-500">No tasks are currently assigned to you.</p>
             </div>
           </div>
         )}
@@ -283,7 +283,7 @@ export default function Dashboard() {
                           <h3 className="font-semibold text-brand-900 truncate group-hover:text-brand-800">
                             {org.name}
                           </h3>
-                          <p className="text-xs text-brand-400 mt-1 tracking-wide uppercase">
+                          <p className="text-xs text-brand-500 mt-1 tracking-wide uppercase">
                             {org.members.length} {org.members.length === 1 ? 'Member' : 'Members'}
                           </p>
                         </div>
@@ -317,7 +317,7 @@ export default function Dashboard() {
             <div className="border border-brand-200">
               {summary && summary.recentActivity.length > 0 && (
                 <div className="bg-brand-800 px-5 py-3">
-                  <span className="text-[11px] font-semibold tracking-[0.18em] text-gold-300 uppercase">Latest Updates</span>
+                  <span className="text-[11px] font-semibold tracking-[0.18em] text-gold-400 uppercase">Latest Updates</span>
                 </div>
               )}
               {summary && summary.recentActivity.length > 0 ? (
@@ -338,7 +338,7 @@ export default function Dashboard() {
                             <span>{activity.details}</span>
                           </p>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[11px] text-brand-400">{getTimeAgo(activity.createdAt)}</span>
+                            <span className="text-[11px] text-brand-500">{getTimeAgo(activity.createdAt)}</span>
                             {activity.project && (
                               <>
                                 <span className="text-brand-300">&middot;</span>
@@ -358,7 +358,7 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="px-5 py-8 text-center">
-                  <p className="text-sm text-brand-400">No activity yet</p>
+                  <p className="text-sm text-brand-500">No activity yet</p>
                 </div>
               )}
             </div>
@@ -374,14 +374,14 @@ function StatCard({ label, value, icon }) {
     <div className="bg-brand-800 border border-brand-700 p-5 relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-[3px] bg-gold-400" />
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] font-semibold tracking-[0.18em] text-gold-300 uppercase">{label}</span>
+        <span className="text-[11px] font-semibold tracking-[0.18em] text-gold-400 uppercase">{label}</span>
         <div className="w-8 h-8 bg-brand-700 flex items-center justify-center">
           <svg className="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={icon} />
           </svg>
         </div>
       </div>
-      <p className="text-[28px] leading-none  font-heading tracking-tight">{value}</p>
+      <p className="text-[28px] leading-none text-gold-400 font-heading tracking-tight">{value}</p>
     </div>
   );
 }

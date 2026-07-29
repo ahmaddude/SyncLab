@@ -40,11 +40,11 @@ export default function ActivityLog({ projectId }) {
   };
 
   if (loading) {
-    return <div className="text-sm text-brand-400 py-4">Loading activity...</div>;
+    return <div className="text-sm text-brand-500 py-4">Loading activity...</div>;
   }
 
   if (activities.length === 0) {
-    return <div className="text-sm text-brand-400 py-4">No activity yet.</div>;
+    return <div className="text-sm text-brand-500 py-4">No activity yet.</div>;
   }
 
   return (
@@ -64,7 +64,7 @@ export default function ActivityLog({ projectId }) {
                 {' '}
                 <span>{activity.details}</span>
               </p>
-              <span className="text-[11px] text-brand-400">{getTimeAgo(activity.createdAt)}</span>
+              <span className="text-[11px] text-brand-500">{getTimeAgo(activity.createdAt)}</span>
             </div>
           </div>
         );

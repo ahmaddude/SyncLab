@@ -95,7 +95,7 @@ export default function WorkspacePage() {
 
         <div className="flex items-center justify-between mb-8 pb-6 border-b border-brand-300">
           <div>
-            <p className="text-[11px] font-semibold tracking-[0.18em] text-brand-400 uppercase mb-2">Workspace</p>
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-2">Workspace</p>
             <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">{workspace.name}</h1>
             {workspace.description && <p className="text-brand-500 mt-2">{workspace.description}</p>}
           </div>
@@ -175,7 +175,7 @@ export default function WorkspacePage() {
                         <p className="text-sm text-brand-500 line-clamp-2 leading-relaxed">{project.description}</p>
                       )}
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-brand-200">
-                        <span className="text-xs text-brand-400">by {project.createdBy?.name || 'Unknown'}</span>
+                        <span className="text-xs text-brand-500">by {project.createdBy?.name || 'Unknown'}</span>
                         <button onClick={(e) => { e.preventDefault(); toggleArchive(project); }}
                           className="text-xs text-brand-500 hover:text-[#9B3B3B] transition-colors">Archive</button>
                       </div>
@@ -187,7 +187,7 @@ export default function WorkspacePage() {
 
             {archivedProjects.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-[15px] font-semibold mb-4 text-brand-400 font-heading">Archived ({archivedProjects.length})</h2>
+                <h2 className="text-[15px] font-semibold mb-4 text-brand-500 font-heading">Archived ({archivedProjects.length})</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {archivedProjects.map((project) => (
                     <div key={project._id} className="p-6 bg-white border border-brand-300 opacity-50">

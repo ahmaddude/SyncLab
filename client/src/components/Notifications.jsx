@@ -128,10 +128,10 @@ export default function Notifications() {
 
           <div className="max-h-96 overflow-y-auto">
             {loading ? (
-              <div className="p-8 text-center text-brand-400 text-sm">Loading...</div>
+              <div className="p-8 text-center text-brand-500 text-sm">Loading...</div>
             ) : notifications.length === 0 ? (
               <div className="p-8 text-center">
-                <p className="text-brand-400 text-sm">No notifications yet</p>
+                <p className="text-brand-500 text-sm">No notifications yet</p>
               </div>
             ) : (
               notifications.map((n) => {
@@ -153,7 +153,7 @@ export default function Notifications() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-brand-900 leading-snug">{n.title}</p>
-                        <span className="text-[11px] text-brand-400 mt-0.5 block">{getTimeAgo(n.createdAt)}</span>
+                        <span className="text-[11px] text-brand-500 mt-0.5 block">{getTimeAgo(n.createdAt)}</span>
                       </div>
                       {!n.read && (
                         <div className="w-2 h-2 rounded-full bg-brand-800 shrink-0 mt-1.5" />

@@ -67,7 +67,7 @@ export default function AIChatPanel() {
         </div>
         <div>
           <h3 className="text-sm font-semibold text-brand-900 font-heading">AI Assistant</h3>
-          <p className="text-[11px] text-brand-400">Powered by Llama 3.3 via Groq</p>
+          <p className="text-[11px] text-brand-500">Powered by Llama 3.3 via Groq</p>
         </div>
       </div>
 
@@ -80,7 +80,7 @@ export default function AIChatPanel() {
               </svg>
             </div>
             <h4 className="text-sm font-medium text-brand-900 mb-1 font-heading">What can I help with?</h4>
-            <p className="text-xs text-brand-400 mb-5">Ask me to write, rewrite, summarize, or brainstorm.</p>
+            <p className="text-xs text-brand-500 mb-5">Ask me to write, rewrite, summarize, or brainstorm.</p>
             <div className="space-y-2">
               {SUGGESTIONS.map((s) => (
                 <button
@@ -98,7 +98,7 @@ export default function AIChatPanel() {
         {messages.map((msg, i) => (
           <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
             {msg.role === 'user' && (
-              <div className="text-[10px] text-brand-400 mb-1 mr-1 font-medium uppercase tracking-wider">You</div>
+              <div className="text-[10px] text-brand-500 mb-1 mr-1 font-medium uppercase tracking-wider">You</div>
             )}
             <div className={`max-w-full px-4 py-3 text-sm leading-relaxed ${
               msg.role === 'user'
@@ -110,7 +110,7 @@ export default function AIChatPanel() {
             {msg.role === 'assistant' && (
               <button
                 onClick={() => handleCopy(msg.content, i)}
-                className="flex items-center gap-1 px-2 py-1 mt-1 ml-1 rounded text-[11px] font-medium text-brand-400 hover:text-brand-800 hover:bg-brand-100 transition-all"
+                className="flex items-center gap-1 px-2 py-1 mt-1 ml-1 rounded text-[11px] font-medium text-brand-500 hover:text-brand-800 hover:bg-brand-100 transition-all"
               >
                 {copiedIdx === i ? (
                   <>
@@ -163,7 +163,7 @@ export default function AIChatPanel() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
           </button>
         </form>
-        <p className="text-[10px] text-brand-400 mt-2 text-center">AI can make mistakes. Verify important content.</p>
+          <p className="text-[10px] text-brand-500 mt-2 text-center">AI can make mistakes. Verify important content.</p>
       </div>
     </div>
   );

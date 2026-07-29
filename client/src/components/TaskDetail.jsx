@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import ConfirmDialog from './ConfirmDialog';
 
 const PRIORITIES = {
-  low: { bg: 'bg-brand-100', text: 'text-brand-500' },
+  low: { bg: 'bg-brand-100', text: 'text-brand-600' },
   medium: { bg: 'bg-blue-50', text: 'text-blue-600' },
   high: { bg: 'bg-amber-50', text: 'text-amber-600' },
   urgent: { bg: 'bg-red-50', text: 'text-red-600' },
@@ -22,6 +23,7 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [] }) {
   const [priority, setPriority] = useState('');
   const [assignee, setAssignee] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => { fetchTask(); }, [task._id]);
 
@@ -75,7 +77,6 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [] }) {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Delete this task?')) return;
     try {
       await api.delete(`/tasks/${task._id}`);
       onUpdate({ _id: task._id, _deleted: true });
@@ -168,13 +169,13 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [] }) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-brand-50 border border-brand-300 p-3">
-                  <span className="text-[11px] text-brand-400 uppercase tracking-wider font-semibold">Status</span>
+                  <span className="text-[11px] text-brand-600 uppercase tracking-wider font-semibold">Status</span>
                   <div className="mt-1.5">
                     <span className="badge-brand">{STATUSES[fullTask.status]}</span>
                   </div>
                 </div>
                 <div className="bg-brand-50 border border-brand-300 p-3">
-                  <span className="text-[11px] text-brand-400 uppercase tracking-wider font-semibold">Priority</span>
+                  <span className="text-[11px] text-brand-600 uppercase tracking-wider font-semibold">Priority</span>
                   <div className="mt-1.5">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${PRIORITIES[fullTask.priority].bg} ${PRIORITIES[fullTask.priority].text}`}>
                       {fullTask.priority}
@@ -182,17 +183,17 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [] }) {
                   </div>
                 </div>
                 <div className="bg-brand-50 border border-brand-300 p-3">
-                  <span className="text-[11px] text-brand-400 uppercase tracking-wider font-semibold">Assignee</span>
+                  <span className="text-[11px] text-brand-600 uppercase tracking-wider font-semibold">Assignee</span>
                   <div className="mt-1.5 text-sm text-brand-900 font-medium">{fullTask.assignee?.name || 'Unassigned'}</div>
                 </div>
                 <div className="bg-brand-50 border border-brand-300 p-3">
-                  <span className="text-[11px] text-brand-400 uppercase tracking-wider font-semibold">Created</span>
+                  <span className="text-[11px] text-brand-600 uppercase tracking-wider font-semibold">Created</span>
                   <div className="mt-1.5 text-sm text-brand-900 font-medium">{new Date(fullTask.createdAt).toLocaleDateString()}</div>
                 </div>
               </div>
 
-              <button onClick={handleDelete}
-                className="text-sm text-[#9B3B3B] hover:text-red-600 font-medium transition-colors">Delete task</button>
+              <button onClick={() => setShowConfirm(true)}
+                className="text-sm text-red-400 hover:text-red-300 font-medium transition-colors">Delete task</button>
             </>
           )}
 
@@ -210,7 +211,7 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [] }) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-brand-900">{comment.author?.name || 'Unknown'}</span>
-                      <span className="text-[11px] text-brand-400">{new Date(comment.createdAt).toLocaleString()}</span>
+                      <span className="text-[11px] text-brand-500">{new Date(comment.createdAt).toLocaleString()}</span>
                       {comment.author?._id === user?.id && (
                         <button onClick={() => handleDeleteComment(comment._id)}
                           className="text-[11px] text-[#9B3B3B] hover:text-red-600 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">Delete</button>
@@ -232,6 +233,14 @@ export default function TaskDetail({ task, onClose, onUpdate, members = [] }) {
             </form>
           </div>
         </div>
+        <ConfirmDialog
+          open={showConfirm}
+          title="Delete task?"
+          message="This action cannot be undone. The task and all its comments will be permanently deleted."
+          confirmLabel="Delete"
+          onConfirm={handleDelete}
+          onCancel={() => setShowConfirm(false)}
+        />
       </div>
     </div>
   );

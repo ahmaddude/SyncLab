@@ -24,7 +24,7 @@ export default function KanbanBoard({ tasks, onDragEnd, onTaskClick }) {
               <div className="flex items-center gap-2.5 mb-3 px-1.5">
                 <div className={`w-2.5 h-2.5 rounded-full ${column.dot}`} />
                 <h3 className="text-sm font-semibold text-brand-900">{column.title}</h3>
-                <span className="text-[11px] font-semibold text-brand-400 bg-white border border-brand-300 px-2 py-0.5 rounded-full">
+                <span className="text-[11px] font-semibold text-brand-500 bg-white border border-brand-300 px-2 py-0.5 rounded-full">
                   {columnTasks.length}
                 </span>
               </div>

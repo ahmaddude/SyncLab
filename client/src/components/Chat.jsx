@@ -88,7 +88,7 @@ export default function Chat({ workspaceId }) {
 
       <div className="h-[400px] overflow-y-auto px-5 py-4 space-y-1 bg-brand-50/50">
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-brand-400 text-sm">
+          <div className="flex items-center justify-center h-full text-brand-500 text-sm">
             No messages yet. Start the conversation!
           </div>
         ) : (
@@ -102,7 +102,7 @@ export default function Chat({ workspaceId }) {
               <div key={msg._id}>
                 {showDate && (
                   <div className="text-center py-3">
-                    <span className="text-[11px] text-brand-400 bg-white border border-brand-300 px-3 py-1 rounded-full font-medium">
+                    <span className="text-[11px] text-brand-500 bg-white border border-brand-300 px-3 py-1 rounded-full font-medium">
                       {formatDate(msg.createdAt)}
                     </span>
                   </div>
@@ -121,7 +121,7 @@ export default function Chat({ workspaceId }) {
                         <span className="text-xs font-semibold text-brand-500">
                           {isOwn ? 'You' : msg.author?.name || 'Unknown'}
                         </span>
-                        <span className="text-[10px] text-brand-400">
+                        <span className="text-[10px] text-brand-500">
                           {formatTime(msg.createdAt)}
                         </span>
                       </div>
@@ -129,8 +129,8 @@ export default function Chat({ workspaceId }) {
 
                     <div className={`px-3.5 py-2 rounded-2xl text-[13px] leading-relaxed ${
                       isOwn
-                        ? 'bg-brand-800 text-white rounded-br-md'
-                        : 'bg-white border border-brand-300 text-brand-900 rounded-bl-md'
+                        ? 'bg-brand-800 text-gold-400 rounded-br-md'
+                        : 'bg-white border border-brand-200 text-brand-900 rounded-bl-md'
                     }`}>
                       {msg.text}
                     </div>
