@@ -9,6 +9,7 @@ const Workspace = require('./models/Workspace');
 const Document = require('./models/Document');
 
 const onlineUsers = new Map();
+let io;
 
 function getOrgMembers(orgId) {
   const members = [];
@@ -21,7 +22,7 @@ function getOrgMembers(orgId) {
 }
 
 function setupSocket(server) {
-  const io = new Server(server, {
+  io = new Server(server, {
     cors: {
       origin: process.env.CLIENT_URL,
       credentials: true,
@@ -156,4 +157,17 @@ function setupSocket(server) {
   return io;
 }
 
-module.exports = { setupSocket, onlineUsers };
+function sendNotification(userId, notification) {
+  if (!io) return;
+  const payload = {
+    ...(typeof notification.toObject === 'function' ? notification.toObject() : notification),
+    user: userId,
+  };
+  for (const [socketId, data] of onlineUsers.entries()) {
+    if (data.userId === userId) {
+      io.to(socketId).emit('notification', payload);
+    }
+  }
+}
+
+module.exports = { setupSocket, onlineUsers, sendNotification };

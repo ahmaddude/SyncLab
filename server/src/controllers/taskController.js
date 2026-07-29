@@ -1,13 +1,18 @@
 const Task = require('../models/Task');
 const Activity = require('../models/Activity');
 const Notification = require('../models/Notification');
+const { sendNotification } = require('../socket');
 
 const logActivity = (action, userId, projectId, taskId, details) => {
   Activity.create({ action, user: userId, project: projectId, task: taskId, details });
 };
 
-const createNotification = (data) => {
-  Notification.create(data);
+const createNotification = async (data) => {
+  try {
+    return await Notification.create(data);
+  } catch (err) {
+    console.error('Failed to create notification:', err);
+  }
 };
 
 exports.createTask = async (req, res) => {
@@ -37,13 +42,14 @@ exports.createTask = async (req, res) => {
     logActivity('task_created', req.user._id, project, task._id, `Created "${title}"`);
 
     if (assignee && assignee !== req.user._id.toString()) {
-      createNotification({
+      const notification = await createNotification({
         user: assignee,
         type: 'task_assigned',
         title: `You were assigned to "${title}"`,
         link: `/projects/${project}`,
         from: req.user._id,
       });
+      if (notification) sendNotification(assignee, notification);
     }
 
     res.status(201).json(populated);
@@ -109,13 +115,14 @@ exports.updateTask = async (req, res) => {
     await task.save();
 
     if (assignee && assignee !== oldAssignee && assignee !== req.user._id.toString()) {
-      createNotification({
+      const notification = await createNotification({
         user: assignee,
         type: 'task_assigned',
         title: `You were assigned to "${task.title}"`,
         link: `/projects/${task.project}`,
         from: req.user._id,
       });
+      if (notification) sendNotification(assignee, notification);
     }
 
     if (status && status !== oldStatus) {
@@ -189,13 +196,14 @@ exports.addComment = async (req, res) => {
       `Commented on "${task.title}"`);
 
     if (task.assignee && task.assignee.toString() !== req.user._id.toString()) {
-      createNotification({
+      const notification = await createNotification({
         user: task.assignee,
         type: 'comment_added',
         title: `New comment on "${task.title}"`,
         link: `/projects/${task.project}`,
         from: req.user._id,
       });
+      if (notification) sendNotification(task.assignee.toString(), notification);
     }
 
     const populated = await Task.findById(task._id)
