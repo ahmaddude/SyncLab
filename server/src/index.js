@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const http = require('http');
 const express = require('express');
 const cors = require('cors');
@@ -45,6 +46,15 @@ app.use('/api/dashboard', dashboardRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '../../client/dist');
+  app.use(express.static(distPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
