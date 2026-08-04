@@ -1,22 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 * {
-  font-family: 'Public Sans', system-ui, sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background-color: #F7F8FA;
-  color: #141B2D;
+  background-color: #0b0f19;
+  color: #e5e7eb;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -24,30 +25,72 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D8DCE3;
-  border-radius: 3px;
+  background: #263350;
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #8A93A3;
+  background: #3a4d73;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.glow-gold {
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.12), 0 8px 28px -12px rgba(212, 175, 55, 0.25);
+}
+
+.spark {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: draw 1.2s ease-out forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.cal-day.active {
+  background: rgba(212, 175, 55, 0.14);
+  color: #fff;
+}
+
+.cal-day.has-event::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: #d4af37;
 }
 
 .input-field {
   width: 100%;
   padding: 0.625rem 0.875rem;
-  border-radius: 0.5rem;
-  background-color: #F7F8FA;
-  border: 1px solid #D8DCE3;
-  color: #141B2D;
-  transition: border-color 0.15s;
+  border-radius: 0.75rem;
+  background-color: #0b0f19;
+  border: 1px solid #263350;
+  color: #e5e7eb;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 .input-field::placeholder {
-  color: #8A93A3;
+  color: #6b7280;
 }
 .input-field:focus {
   outline: none;
-  border-color: #1B2A4A;
-  box-shadow: 0 0 0 1px #1B2A4A;
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.1);
 }
 
 .badge {
@@ -66,9 +109,9 @@ body {
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
-  background-color: rgba(27, 42, 74, 0.1);
-  color: #1B2A4A;
-  border: 1px solid rgba(27, 42, 74, 0.2);
+  background-color: rgba(212, 175, 55, 0.1);
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.2);
 }
 
 @layer utilities {

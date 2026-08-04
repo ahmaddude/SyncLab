@@ -3,10 +3,44 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import KanbanBoard from '../components/KanbanBoard';
-import TaskDetail from '../components/TaskDetail';
 import CreateTask from '../components/CreateTask';
 import AITaskGenerator from '../components/AITaskGenerator';
 import ActivityLog from '../components/ActivityLog';
+import TaskDetailPane from '../components/TaskDetailPane';
+
+const TABS = ['All', 'Active', 'Upcoming', 'Done'];
+
+const PRIORITY_TAGS = {
+  low: { label: 'Low', cls: 'bg-ink-800 text-gray-400 border border-line' },
+  medium: { label: 'Medium', cls: 'bg-gold/10 text-gold' },
+  high: { label: 'High', cls: 'bg-coral/10 text-coral' },
+  urgent: { label: 'Urgent', cls: 'bg-coral/10 text-coral' },
+};
+
+const STATUS_ICONS = {
+  done: 'fa-solid fa-circle-check text-emerald text-sm',
+  in_progress: 'fa-solid fa-spinner text-gold text-sm animate-spin',
+  review: 'fa-solid fa-eye text-gold text-sm',
+  todo: 'fa-regular fa-circle text-gray-500 text-sm',
+};
+
+function initialsOf(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function dueLabel(date) {
+  if (!date) return null;
+  const now = new Date();
+  const d = new Date(date);
+  const days = Math.ceil((d - now) / (1000 * 60 * 60 * 24));
+  if (days < 0) return { label: `${Math.abs(days)}d overdue`, cls: 'bg-coral/10 text-coral' };
+  if (days === 0) return { label: 'Due today', cls: 'bg-gold/10 text-gold' };
+  if (days === 1) return { label: 'Due tomorrow', cls: 'bg-gold/10 text-gold' };
+  return { label: `Due in ${days}d`, cls: 'bg-ink-800 text-gray-400 border border-line' };
+}
 
 export default function ProjectPage() {
   const { user } = useAuth();
@@ -16,6 +50,8 @@ export default function ProjectPage() {
   const [members, setMembers] = useState([]);
   const [myRole, setMyRole] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [view, setView] = useState('list');
+  const [tab, setTab] = useState('All');
   const [showCreate, setShowCreate] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showActivity, setShowActivity] = useState(false);
@@ -94,6 +130,7 @@ export default function ProjectPage() {
   const handleTaskUpdate = (updated) => {
     if (updated._deleted) {
       setTasks(tasks.filter((t) => t._id !== updated._id));
+      if (selectedTask?._id === updated._id) setSelectedTask(null);
     } else {
       setTasks(tasks.map((t) => (t._id === updated._id ? { ...t, ...updated } : t)));
     }
@@ -102,88 +139,210 @@ export default function ProjectPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-        <div className="w-7 h-7 border-2 border-brand-300 border-t-brand-800 rounded-full animate-spin" />
+        <div className="w-7 h-7 border-2 border-line border-t-gold rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 py-8"><p className="text-brand-500">Project not found.</p></div>
+      <div className="min-h-screen bg-ink-950">
+        <div className="max-w-7xl mx-auto px-4 py-8"><p className="text-gray-400">Project not found.</p></div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen">
-      <div className="h-[3px] bg-brand-800" />
-      <div className="h-px bg-gold-400" />
+  const tabCounts = {
+    All: tasks.length,
+    Active: tasks.filter((t) => ['todo', 'in_progress', 'review'].includes(t.status)).length,
+    Upcoming: tasks.filter((t) => t.dueDate && new Date(t.dueDate) > new Date() && t.status !== 'done').length,
+    Done: tasks.filter((t) => t.status === 'done').length,
+  };
 
-      <div className="max-w-full mx-auto px-4 sm:px-6 py-6">
-        <div className="mb-2 text-sm text-brand-500">
-          <Link to="/dashboard" className="hover:text-brand-800 transition-colors">Dashboard</Link>
-          <span className="mx-2 text-brand-300">/</span>
-          <Link to={`/workspaces/${project.workspace?._id || ''}`} className="hover:text-brand-800 transition-colors">
+  const filteredTasks = tasks.filter((t) => {
+    if (tab === 'Active') return ['todo', 'in_progress', 'review'].includes(t.status);
+    if (tab === 'Upcoming') return t.dueDate && new Date(t.dueDate) > new Date() && t.status !== 'done';
+    if (tab === 'Done') return t.status === 'done';
+    return true;
+  });
+
+  return (
+    <div className="min-h-screen bg-ink-950">
+      <div className="max-w-[1400px] mx-auto px-8 py-8">
+        <div className="mb-2 text-sm text-gray-400">
+          <Link to="/dashboard" className="hover:text-gold transition-colors">Dashboard</Link>
+          <span className="mx-2 text-gray-600">/</span>
+          <Link to={`/workspaces/${project.workspace?._id || ''}`} className="hover:text-gold transition-colors">
             {project.workspace?.name || 'Workspace'}
           </Link>
-          <span className="mx-2 text-brand-300">/</span>
-          <span className="text-brand-900 font-medium">{project.name}</span>
+          <span className="mx-2 text-gray-600">/</span>
+          <span className="text-white font-medium">{project.name}</span>
         </div>
 
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-300">
+        <div className="flex items-center justify-between mb-6">
           <div>
-              <p className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-1">Project</p>
-            <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">{project.name}</h1>
-            {project.description && <p className="text-brand-500 mt-2">{project.description}</p>}
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-1">Project</p>
+            <h1 className="text-[26px] leading-tight text-white font-heading tracking-tight">{project.name}</h1>
+            {project.description && <p className="text-gray-400 mt-1 text-sm">{project.description}</p>}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex p-1 bg-ink-900 border border-line rounded-lg">
+              <button
+                onClick={() => setView('list')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${view === 'list' ? 'bg-gold/15 text-gold' : 'text-gray-400 hover:text-white'}`}
+              >
+                List
+              </button>
+              <button
+                onClick={() => setView('board')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${view === 'board' ? 'bg-gold/15 text-gold' : 'text-gray-400 hover:text-white'}`}
+              >
+                Board
+              </button>
+            </div>
             <button onClick={() => setShowActivity(!showActivity)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-500 bg-white border border-brand-300 hover:border-brand-800 hover:text-brand-900 transition-colors ${showActivity ? 'ring-1 ring-brand-800/30' : ''}`}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-300 bg-ink-900 border border-line hover:bg-ink-850 hover:border-gold/30 rounded-lg transition-colors ${showActivity ? 'ring-1 ring-gold/40' : ''}`}>
+              <i className="fa-solid fa-clock-rotate-left text-xs text-gray-400"></i>
               Activity
             </button>
             <button onClick={() => setShowAI(true)}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-500 bg-white border border-brand-300 hover:border-brand-800 hover:text-brand-900 transition-colors">
-              <svg className="w-4 h-4 text-brand-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-300 bg-ink-900 border border-line hover:bg-ink-850 hover:border-gold/30 rounded-lg transition-colors">
+              <i className="fa-solid fa-wand-magic-sparkles text-xs text-gold"></i>
               AI Generate
             </button>
             <button onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-ink-950 bg-gold hover:bg-gold-hover rounded-lg transition-colors">
+              <i className="fa-solid fa-plus text-xs"></i>
               New Task
             </button>
           </div>
         </div>
 
         {error && (
-          <div className="mb-6 px-4 py-3 bg-[#FBEEEE] text-[#9B3B3B] text-sm border-l-2 border-[#9B3B3B]">{error}</div>
+          <div className="mb-6 px-4 py-3 bg-coral/10 text-coral text-sm border-l-2 border-coral rounded-r-lg">{error}</div>
         )}
 
-        <div className="flex gap-6">
-          <div className={`flex-1 min-w-0 ${showActivity ? 'pr-2' : ''}`}>
-            <KanbanBoard tasks={tasks} onDragEnd={handleDragEnd} onTaskClick={setSelectedTask} />
-          </div>
-
-          {showActivity && (
-            <div className="w-80 shrink-0">
-              <div className="bg-white border border-brand-300 p-5 sticky top-6">
-                <h3 className="font-semibold text-brand-900 mb-4 flex items-center gap-2 font-heading">
-                  <svg className="w-4 h-4 text-brand-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  Activity
-                </h3>
-                <ActivityLog projectId={id} />
-              </div>
+        {view === 'board' ? (
+          <div className="flex gap-6 items-start">
+            <div className="flex-1 min-w-0">
+              <KanbanBoard tasks={tasks} onDragEnd={handleDragEnd} onTaskClick={setSelectedTask} />
             </div>
-          )}
-        </div>
+            {showActivity && (
+              <div className="w-80 shrink-0">
+                <div className="bg-ink-850 border border-line p-5 sticky top-6 rounded-xl">
+                  <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                    <i className="fa-solid fa-clock-rotate-left text-xs text-gold"></i>
+                    Activity
+                  </h3>
+                  <ActivityLog projectId={id} />
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex gap-6 items-start">
+            <div className="flex-1 min-w-0">
+              <div className="border border-line rounded-xl bg-ink-850 overflow-hidden">
+                <div className="bg-ink-900/60 border-b border-line px-5 py-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-semibold text-white">Tasks</h2>
+                    <span className="text-xs text-gray-500">{filteredTasks.length} shown</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {TABS.map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setTab(t)}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                          tab === t ? 'bg-gold/15 text-gold' : 'text-gray-400 hover:text-white hover:bg-ink-800'
+                        }`}
+                      >
+                        {t}
+                        <span className={`text-[10px] ${tab === t ? 'text-gold/70' : 'text-gray-500'}`}>{tabCounts[t]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {filteredTasks.length > 0 ? (
+                  <div className="divide-y divide-line bg-ink-850">
+                    {filteredTasks.map((task) => {
+                      const p = PRIORITY_TAGS[task.priority] || PRIORITY_TAGS.medium;
+                      const due = dueLabel(task.dueDate);
+                      const selected = selectedTask?._id === task._id;
+                      return (
+                        <button
+                          key={task._id}
+                          onClick={() => setSelectedTask(task)}
+                          className={`w-full flex items-center gap-4 px-5 py-3.5 transition-colors text-left ${
+                            selected ? 'bg-gold/5 border-l-2 border-gold' : 'hover:bg-ink-800/50 border-l-2 border-transparent'
+                          }`}
+                        >
+                          <i className={STATUS_ICONS[task.status] || STATUS_ICONS.todo}></i>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium truncate ${selected ? 'text-gold' : 'text-gray-100 group-hover:text-white'}`}>
+                              {task.title}
+                            </p>
+                          </div>
+                          <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${p.cls}`}>
+                            {p.label}
+                          </span>
+                          {due && (
+                            <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${due.cls}`}>
+                              {due.label}
+                            </span>
+                          )}
+                          <div className="w-7 h-7 rounded-full bg-ink-800 border border-line ring-1 ring-gold/30 flex items-center justify-center text-[10px] font-semibold text-gold shrink-0">
+                            {initialsOf(task.assignee?.name)}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="px-5 py-12 text-center bg-ink-850">
+                    <p className="text-sm text-gray-400">No tasks match this filter.</p>
+                  </div>
+                )}
+              </div>
+
+              {showActivity && (
+                <div className="mt-6">
+                  <div className="bg-ink-850 border border-line p-5 rounded-xl">
+                    <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                      <i className="fa-solid fa-clock-rotate-left text-xs text-gold"></i>
+                      Activity
+                    </h3>
+                    <ActivityLog projectId={id} />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="w-[380px] shrink-0">
+              {selectedTask ? (
+                <TaskDetailPane
+                  task={selectedTask}
+                  project={project}
+                  members={members}
+                  userRole={myRole}
+                  onUpdate={handleTaskUpdate}
+                  onClose={() => setSelectedTask(null)}
+                />
+              ) : (
+                <div className="bg-ink-850 border border-dashed border-line rounded-xl px-5 py-16 text-center sticky top-6">
+                  <div className="w-12 h-12 border border-gold/30 bg-gold/10 flex items-center justify-center mx-auto mb-4 rounded-xl">
+                    <i className="fa-solid fa-arrow-pointer text-gold text-lg"></i>
+                  </div>
+                  <p className="text-sm font-medium text-gray-100">Select a task</p>
+                  <p className="text-xs text-gray-500 mt-1">Choose a task from the list to view its details.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {showCreate && (
           <CreateTask onSubmit={handleCreateTask} onCancel={() => setShowCreate(false)} members={members} />
-        )}
-
-        {selectedTask && (
-          <TaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} onUpdate={handleTaskUpdate} members={members} userRole={myRole} />
         )}
 
         {showAI && (

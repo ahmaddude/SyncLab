@@ -72,22 +72,22 @@ export default function Chat({ workspaceId }) {
 
   if (loading) {
     return (
-      <div className="bg-white border border-brand-300 p-8 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-brand-300 border-t-brand-800 rounded-full animate-spin" />
+      <div className="bg-ink-850 border border-line rounded-2xl p-8 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-line border-t-gold rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-brand-300 overflow-hidden">
-      <div className="px-5 py-4 border-b border-brand-200 flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-emerald-500" />
-        <h3 className="font-semibold text-brand-900 font-heading">Team Chat</h3>
+    <div className="bg-ink-850 border border-line rounded-2xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-emerald" />
+        <h3 className="font-semibold text-white font-heading">Team Chat</h3>
       </div>
 
-      <div className="h-[400px] overflow-y-auto px-5 py-4 space-y-1 bg-brand-50/50">
+      <div className="h-[400px] overflow-y-auto px-5 py-4 space-y-1 bg-ink-950/50">
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-brand-500 text-sm">
+          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
             No messages yet. Start the conversation!
           </div>
         ) : (
@@ -101,7 +101,7 @@ export default function Chat({ workspaceId }) {
               <div key={msg._id}>
                 {showDate && (
                   <div className="text-center py-3">
-                    <span className="text-[11px] text-brand-500 bg-white border border-brand-300 px-3 py-1 rounded-full font-medium">
+                    <span className="text-[11px] text-gray-400 bg-ink-900 border border-line px-3 py-1 rounded-full font-medium">
                       {formatDate(msg.createdAt)}
                     </span>
                   </div>
@@ -109,7 +109,7 @@ export default function Chat({ workspaceId }) {
 
                 <div className={`flex gap-2.5 ${grouped ? 'mt-0.5' : 'mt-3'} ${isOwn ? 'flex-row-reverse' : ''}`}>
                   {!grouped && (
-                    <div className="w-8 h-8 bg-brand-100 border border-brand-300 flex items-center justify-center text-[11px] font-semibold text-brand-600 shrink-0">
+                    <div className="w-8 h-8 bg-ink-900 border border-line flex items-center justify-center text-[11px] font-semibold text-gold shrink-0">
                       {msg.author?.name?.[0]?.toUpperCase() || '?'}
                     </div>
                   )}
@@ -117,10 +117,10 @@ export default function Chat({ workspaceId }) {
                   <div className={`max-w-[75%] ${grouped ? (isOwn ? 'mr-10' : 'ml-10') : ''}`}>
                     {!grouped && (
                       <div className={`flex items-center gap-2 mb-1 ${isOwn ? 'justify-end' : ''}`}>
-                        <span className="text-xs font-semibold text-brand-500">
+                        <span className="text-xs font-semibold text-gray-400">
                           {isOwn ? 'You' : msg.author?.name || 'Unknown'}
                         </span>
-                        <span className="text-[10px] text-brand-500">
+                        <span className="text-[10px] text-gray-500">
                           {formatTime(msg.createdAt)}
                         </span>
                       </div>
@@ -128,8 +128,8 @@ export default function Chat({ workspaceId }) {
 
                     <div className={`px-3.5 py-2 rounded-2xl text-[13px] leading-relaxed ${
                       isOwn
-                        ? 'bg-brand-800 text-gold-400 rounded-br-md'
-                        : 'bg-white border border-brand-200 text-brand-900 rounded-bl-md'
+                        ? 'bg-gold text-ink-950 rounded-br-md'
+                        : 'bg-ink-850 border border-line text-gray-200 rounded-bl-md'
                     }`}>
                       {msg.text}
                     </div>
@@ -142,13 +142,13 @@ export default function Chat({ workspaceId }) {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSend} className="px-5 py-4 border-t border-brand-200">
-        <div className="flex gap-2">
+      <form onSubmit={handleSend} className="px-5 py-4 border-t border-line">
+        <div className="flex gap-2 bg-ink-900 border border-line rounded-xl p-2">
           <input ref={inputRef} type="text" value={text} onChange={(e) => setText(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 input-field text-sm" />
+            className="flex-1 bg-transparent border-none px-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none" />
           <button type="submit" disabled={!text.trim()}
-            className="px-5 py-2 bg-brand-800 text-white rounded text-sm font-medium hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+            className="px-5 py-2 bg-gold text-ink-950 rounded text-sm font-semibold hover:bg-gold-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
             Send
           </button>
         </div>

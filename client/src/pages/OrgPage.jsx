@@ -3,16 +3,51 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 
+const ACTIVITY_ICONS = {
+  task_created: { icon: 'fa-solid fa-code-branch text-xs', cls: 'bg-gold/10 text-gold' },
+  task_updated: { icon: 'fa-solid fa-bolt text-xs', cls: 'bg-emerald/10 text-emerald' },
+  task_moved: { icon: 'fa-solid fa-arrow-right-arrow-left text-xs', cls: 'bg-gold/10 text-gold' },
+  task_deleted: { icon: 'fa-solid fa-trash-can text-xs', cls: 'bg-coral/10 text-coral' },
+  comment_added: { icon: 'fa-solid fa-comment text-xs', cls: 'bg-gold/10 text-gold' },
+};
+
+const DEFAULT_ACTIVITY_ICON = { icon: 'fa-solid fa-rocket text-xs', cls: 'bg-ink-800 border border-line text-gray-300' };
+
+const ROLE_STYLES = {
+  owner: { bg: 'bg-gold/15', text: 'text-gold', border: 'border border-gold/30' },
+  admin: { bg: 'bg-ink-800', text: 'text-gold', border: 'border border-line' },
+  member: { bg: 'bg-ink-800', text: 'text-gray-400', border: 'border border-line' },
+};
+
+function initialsOf(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function getTimeAgo(date) {
+  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 export default function OrgPage() {
   const { user } = useAuth();
   const { id } = useParams();
   const [org, setOrg] = useState(null);
   const [workspaces, setWorkspaces] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
   const [wsName, setWsName] = useState('');
   const [wsDesc, setWsDesc] = useState('');
   const [creating, setCreating] = useState(false);
+  const [showCreateWs, setShowCreateWs] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviting, setInviting] = useState(false);
@@ -22,12 +57,14 @@ export default function OrgPage() {
 
   const fetchData = async () => {
     try {
-      const [orgData, wsData] = await Promise.all([
+      const [orgData, wsData, actData] = await Promise.all([
         api.get(`/orgs/${id}`),
         api.get(`/workspaces?org=${id}`),
+        api.get(`/activity?organization=${id}`),
       ]);
       setOrg(orgData);
       setWorkspaces(wsData);
+      setActivities(actData);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -41,7 +78,7 @@ export default function OrgPage() {
     try {
       const ws = await api.post('/workspaces', { name: wsName, description: wsDesc, organization: id });
       setWorkspaces([ws, ...workspaces]);
-      setWsName(''); setWsDesc(''); setShowCreate(false);
+      setWsName(''); setWsDesc(''); setShowCreateWs(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -65,7 +102,7 @@ export default function OrgPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-        <div className="w-7 h-7 border-2 border-brand-300 border-t-gold-500 rounded-full animate-spin" />
+        <div className="w-7 h-7 border-2 border-line border-t-gold rounded-full animate-spin" />
       </div>
     );
   }
@@ -73,7 +110,7 @@ export default function OrgPage() {
   if (!org) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <p className="text-brand-500">Organization not found.</p>
+        <p className="text-gray-400">Organization not found.</p>
       </div>
     );
   }
@@ -85,58 +122,45 @@ export default function OrgPage() {
   const canChangeRole = myRole === 'owner';
 
   return (
-    <div className="min-h-screen">
-      <div className="h-[3px] bg-brand-800" />
-      <div className="h-px bg-gold-400" />
-      <div className="h-px bg-brand-800 mt-px" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-        <div className="mb-2 text-sm text-brand-500">
-          <Link to="/dashboard" className="hover:text-brand-800 transition-colors">Dashboard</Link>
-          <span className="mx-2 text-brand-300">/</span>
-          <span className="text-brand-900 font-medium">{org.name}</span>
+    <div className="min-h-screen bg-ink-950">
+      <div className="max-w-[1200px] mx-auto px-8 py-8">
+        <div className="mb-2 text-xs text-gray-500">
+          <Link to="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>
+          <span className="mx-2 text-gray-600">/</span>
+          <span className="text-sm font-medium text-white">{org.name}</span>
         </div>
 
-        <div className="flex items-center justify-between mb-10 pb-6 border-b border-brand-300">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <p className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-2">Organization</p>
-            <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">{org.name}</h1>
-            {org.description && <p className="text-brand-500 mt-2">{org.description}</p>}
+            <p className="text-[11px] font-semibold tracking-widest text-gold uppercase mb-1">Organization</p>
+            <h1 className="text-[26px] leading-tight text-white font-heading tracking-tight">{org.name}</h1>
+            {org.description && <p className="text-gray-400 mt-1 text-sm">{org.description}</p>}
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 shrink-0">
             {canInvite && (
               <button
                 onClick={() => setShowInvite(true)}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-500 bg-white border border-brand-300 hover:border-gold-400 hover:text-brand-900 transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-300 bg-ink-900 border border-line hover:border-gold/30 hover:text-white rounded-lg transition-colors"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                <i className="fa-solid fa-user-plus text-xs"></i>
                 Invite
-              </button>
-            )}
-            {canManageWs && (
-              <button
-                onClick={() => setShowCreate(true)}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gold-500 hover:bg-gold-600 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                New Workspace
               </button>
             )}
           </div>
         </div>
 
         {error && (
-          <div className="mb-6 px-4 py-3 bg-[#FBEEEE] text-[#9B3B3B] text-sm border-l-2 border-[#9B3B3B]">
+          <div className="mb-6 px-4 py-3 bg-coral/10 text-coral text-sm border-l-2 border-coral rounded-r-lg">
             {error}
           </div>
         )}
 
         {showInvite && (
-          <div className="mb-6 border border-brand-200">
-            <div className="bg-brand-800 px-6 py-4">
-              <h2 className="text-[15px] font-semibold text-white font-heading">Invite Member</h2>
+          <div className="mb-6 border border-line rounded-xl overflow-hidden bg-ink-900">
+            <div className="bg-ink-800 px-6 py-4 border-b border-line">
+              <h2 className="text-sm font-semibold text-white">Invite Member</h2>
             </div>
-            <form onSubmit={handleInvite} className="p-6 flex gap-3 bg-white">
+            <form onSubmit={handleInvite} className="p-6 flex gap-3 bg-ink-900">
               <input
                 type="email"
                 required
@@ -148,14 +172,14 @@ export default function OrgPage() {
               <button
                 type="submit"
                 disabled={inviting}
-                className="px-4 py-2.5 text-sm font-medium text-white bg-gold-500 hover:bg-gold-600 disabled:opacity-50 transition-colors"
+                className="px-4 py-2.5 text-sm font-semibold text-ink-950 bg-gold hover:bg-gold-hover rounded-lg disabled:opacity-50 transition-colors"
               >
                 {inviting ? 'Inviting...' : 'Invite'}
               </button>
               <button
                 type="button"
                 onClick={() => setShowInvite(false)}
-                className="px-4 py-2.5 text-sm font-medium text-brand-500 hover:text-brand-900 transition-colors"
+                className="px-4 py-2.5 text-sm font-medium text-gray-400 hover:text-white transition-colors"
               >
                 Cancel
               </button>
@@ -163,137 +187,143 @@ export default function OrgPage() {
           </div>
         )}
 
-        {showCreate && (
-          <div className="mb-6 border border-brand-200">
-            <div className="bg-brand-800 px-6 py-4">
-              <h2 className="text-[15px] font-semibold text-white font-heading">Create Workspace</h2>
-            </div>
-            <form onSubmit={handleCreateWorkspace} className="p-6 space-y-5 bg-white">
-              <div>
-                <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">Name</label>
-                <input
-                  type="text"
-                  required
-                  value={wsName}
-                  onChange={(e) => setWsName(e.target.value)}
-                  className="input-field"
-                  placeholder="Engineering Team"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">Description</label>
-                <input
-                  type="text"
-                  value={wsDesc}
-                  onChange={(e) => setWsDesc(e.target.value)}
-                  className="input-field"
-                  placeholder="What's this workspace for?"
-                />
-              </div>
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="px-4 py-2.5 text-sm font-medium text-white bg-gold-500 hover:bg-gold-600 disabled:opacity-50 transition-colors"
-                >
-                  {creating ? 'Creating...' : 'Create'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowCreate(false)}
-                  className="px-4 py-2.5 text-sm font-medium text-brand-500 hover:text-brand-900 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">Workspaces</h2>
-            {workspaces.length === 0 ? (
-              <div className="text-center py-16 border border-dashed border-brand-300">
-                <div className="w-14 h-14 border border-gold-400 flex items-center justify-center mx-auto mb-5 bg-brand-800">
-                  <svg className="w-6 h-6 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-brand-900 mb-2 font-heading">No workspaces yet</h3>
-                <p className="text-brand-500 text-sm">Create one to start organizing projects.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {workspaces.map((ws) => (
-                  <Link
-                    key={ws._id}
-                    to={`/workspaces/${ws._id}`}
-                    className="group block bg-white border border-brand-300 hover:border-gold-400 hover:shadow-[0_2px_12px_rgba(201,166,107,0.15)] transition-all p-6 relative overflow-hidden"
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-7 space-y-6">
+            {canManageWs && showCreateWs && (
+              <div className="border border-line rounded-xl bg-ink-850 overflow-hidden">
+                <div className="bg-ink-900/60 border-b border-line px-6 py-4 flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-white">Create Workspace</h2>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateWs(false)}
+                    className="text-gray-400 hover:text-white transition-colors"
                   >
-                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gold-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 bg-brand-800 border border-brand-700 flex items-center justify-center text-gold-400 font-bold text-sm font-heading">
-                        {ws.name[0].toUpperCase()}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-brand-900 group-hover:text-brand-800">{ws.name}</h3>
-                        {ws.description && (
-                          <p className="text-xs text-brand-500 line-clamp-1 mt-0.5">{ws.description}</p>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-xs text-brand-500 mt-3 pt-3 border-t border-brand-200">
-                      Created by {ws.createdBy?.name || 'Unknown'}
-                    </p>
-                  </Link>
-                ))}
+                    <i className="fa-solid fa-xmark text-sm"></i>
+                  </button>
+                </div>
+                <form onSubmit={handleCreateWorkspace} className="p-6 space-y-5 bg-ink-850">
+                  <div>
+                    <label className="block text-[11px] font-semibold tracking-widest text-gray-400 uppercase mb-2">Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={wsName}
+                      onChange={(e) => setWsName(e.target.value)}
+                      className="input-field"
+                      placeholder="Engineering Team"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold tracking-widest text-gray-400 uppercase mb-2">Description</label>
+                    <input
+                      type="text"
+                      value={wsDesc}
+                      onChange={(e) => setWsDesc(e.target.value)}
+                      className="input-field"
+                      placeholder="What's this workspace for?"
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      type="submit"
+                      disabled={creating}
+                      className="px-4 py-2.5 text-sm font-semibold text-ink-950 bg-gold hover:bg-gold-hover rounded-lg disabled:opacity-50 transition-colors"
+                    >
+                      {creating ? 'Creating...' : 'Create'}
+                    </button>
+                  </div>
+                </form>
               </div>
             )}
+
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
+                  Your Workspaces
+                </h2>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500">{workspaces.length} total</span>
+                  {canManageWs && !showCreateWs && (
+                    <button
+                      onClick={() => setShowCreateWs(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gold/40 bg-gold/10 text-xs font-medium text-gold hover:bg-gold/20 transition-colors"
+                    >
+                      <i className="fa-solid fa-plus text-[10px]"></i>
+                      New Workspace
+                    </button>
+                  )}
+                </div>
+              </div>
+              {workspaces.length === 0 ? (
+                <div className="text-center py-16 border border-dashed border-line rounded-xl">
+                  <div className="w-14 h-14 border border-gold/30 flex items-center justify-center mx-auto mb-5 bg-ink-800 rounded-xl">
+                    <i className="fa-solid fa-layer-group text-gold text-xl"></i>
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2 font-heading">No workspaces yet</h3>
+                  <p className="text-gray-400 text-sm">Create one to start organizing projects.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {workspaces.map((ws) => (
+                    <Link
+                      key={ws._id}
+                      to={`/workspaces/${ws._id}`}
+                      className="group block bg-ink-850 border border-line hover:border-gold/40 hover:shadow-[0_2px_12px_rgba(212,175,55,0.15)] transition-all p-5 relative overflow-hidden rounded-xl"
+                    >
+                      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gold opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 bg-ink-800 border border-line flex items-center justify-center text-gold font-bold text-sm font-heading rounded-xl">
+                          {ws.name[0].toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-white group-hover:text-gold truncate">{ws.name}</h3>
+                          {ws.description && (
+                            <p className="text-xs text-gray-400 line-clamp-1 mt-0.5">{ws.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-line">
+                        Created by {ws.createdBy?.name || 'Unknown'}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="lg:col-span-1">
-            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">Members</h2>
-            <div className="border border-brand-200">
-              <div className="bg-brand-800 px-5 py-3 flex items-center justify-between">
-                <span className="text-[11px] font-semibold tracking-[0.18em] text-gold-400 uppercase">{org.members.length} Members</span>
+          <div className="lg:col-span-5 space-y-6">
+            <div className="border border-line rounded-xl overflow-hidden bg-ink-850">
+              <div className="bg-ink-900/60 px-5 py-4 flex items-center justify-between border-b border-line">
+                <div>
+                  <h2 className="text-sm font-semibold text-white">Team Members</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">{org.members.length} total</p>
+                </div>
                 {canInvite && (
                   <button
                     onClick={() => setShowInvite(true)}
-                    className="text-[11px] font-semibold tracking-wide text-gold-400 hover:text-gold-400 uppercase transition-colors"
+                    className="text-[11px] font-semibold tracking-wide text-gold hover:text-gold/80 uppercase transition-colors"
                   >
                     + Invite
                   </button>
                 )}
               </div>
-              <div className="bg-white divide-y divide-brand-100">
+              <div className="bg-ink-850 divide-y divide-line">
                 {org.members.map((m) => {
-                  const roleStyles = {
-                    owner: { bg: 'bg-gold-500', text: 'text-brand-900' },
-                    admin: { bg: 'bg-brand-800', text: 'text-gold-400' },
-                    member: { bg: 'bg-brand-100', text: 'text-brand-600' },
-                  };
-                  const rs = roleStyles[m.role] || roleStyles.member;
+                  const rs = ROLE_STYLES[m.role] || ROLE_STYLES.member;
                   return (
-                    <div key={m.user._id} className="px-5 py-4 flex items-start gap-3 hover:bg-brand-50 transition-colors">
-                      <div className="w-9 h-9 bg-brand-800 flex items-center justify-center shrink-0 text-[13px] font-semibold text-gold-400 font-heading ring-1 ring-brand-700">
-                        {m.user.name?.[0]?.toUpperCase() || '?'}
+                    <div key={m.user._id} className="px-5 py-4 flex items-center gap-3 hover:bg-ink-800/50 transition-colors">
+                      <div className="w-9 h-9 bg-ink-800 flex items-center justify-center shrink-0 text-[10px] font-semibold text-gold font-heading ring-1 ring-line rounded-full">
+                        {initialsOf(m.user.name)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-brand-900 truncate">{m.user.name}</p>
-                          <span className={`shrink-0 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${rs.bg} ${rs.text}`}>
+                          <p className="text-sm font-medium text-white truncate">{m.user.name}</p>
+                          <span className={`shrink-0 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full ${rs.bg} ${rs.text} ${rs.border}`}>
                             {m.role}
                           </span>
                         </div>
-                        {m.user.email && (
-                          <p className="text-xs text-brand-500 mt-0.5 truncate">{m.user.email}</p>
-                        )}
-                        {m.joinedAt && (
-                          <p className="text-[11px] text-brand-500 mt-1">
-                            Joined {new Date(m.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </p>
-                        )}
+                        <p className="text-xs text-gray-400 mt-0.5 truncate">{m.user.email}</p>
                       </div>
                       {m.user._id !== user?.id && (
                         <div className="flex items-center gap-1 shrink-0">
@@ -308,7 +338,7 @@ export default function OrgPage() {
                                   setError(err.message);
                                 }
                               }}
-                              className="text-[10px] bg-transparent text-brand-500 border border-brand-200 rounded px-1 py-0.5 focus:outline-none"
+                              className="text-[10px] bg-ink-950 text-gray-400 border border-line rounded px-1 py-0.5 focus:outline-none"
                             >
                               <option value="admin">Admin</option>
                               <option value="member">Member</option>
@@ -324,10 +354,10 @@ export default function OrgPage() {
                                   setError(err.message);
                                 }
                               }}
-                              className="text-brand-400 hover:text-[#9B3B3B] transition-colors p-1"
+                              className="text-gray-500 hover:text-coral transition-colors p-1"
                               title="Remove member"
                             >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                              <i className="fa-solid fa-xmark text-xs"></i>
                             </button>
                           )}
                         </div>
@@ -336,6 +366,46 @@ export default function OrgPage() {
                   );
                 })}
               </div>
+            </div>
+
+            <div className="border border-line rounded-xl bg-ink-850 overflow-hidden">
+              <div className="bg-ink-900/60 px-5 py-4 border-b border-line">
+                <h2 className="text-sm font-semibold text-white">Org Activity</h2>
+              </div>
+              {activities.length > 0 ? (
+                <div className="divide-y divide-line bg-ink-850">
+                  {activities.map((activity) => {
+                    const style = ACTIVITY_ICONS[activity.action] || DEFAULT_ACTIVITY_ICON;
+                    return (
+                      <div key={activity._id} className="px-5 py-3.5 flex gap-3">
+                        <div className={`w-8 h-8 ${style.cls} flex items-center justify-center shrink-0 mt-0.5 rounded-lg`}>
+                          <i className={style.icon}></i>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-400 leading-snug">
+                            <span className="font-medium text-gray-100">{activity.user?.name || 'Someone'}</span>
+                            {' '}
+                            <span>{activity.details}</span>
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[11px] text-gray-400">{getTimeAgo(activity.createdAt)}</span>
+                            {activity.project && (
+                              <>
+                                <span className="text-gray-600">&middot;</span>
+                                <span className="text-[11px] text-gold">{activity.project.name}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="px-5 py-10 text-center bg-ink-850">
+                  <p className="text-sm text-gray-400">No activity yet</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

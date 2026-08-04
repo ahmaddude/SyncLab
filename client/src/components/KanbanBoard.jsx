@@ -3,16 +3,16 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import TaskCard from './TaskCard';
 
 const COLUMNS = [
-  { id: 'todo', title: 'To Do', dot: 'bg-brand-400' },
-  { id: 'in_progress', title: 'In Progress', dot: 'bg-blue-500' },
-  { id: 'review', title: 'Review', dot: 'bg-amber-500' },
-  { id: 'done', title: 'Done', dot: 'bg-emerald-500' },
+  { id: 'todo', title: 'To Do', dot: 'bg-gray-400' },
+  { id: 'in_progress', title: 'In Progress', dot: 'bg-gold' },
+  { id: 'review', title: 'Review', dot: 'bg-amber' },
+  { id: 'done', title: 'Done', dot: 'bg-emerald' },
 ];
 
 const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
 const STATUSES = { todo: 'To Do', in_progress: 'In Progress', review: 'Review', done: 'Done' };
 
-const selectClass = "text-xs bg-white border border-brand-300 text-brand-600 rounded px-2.5 py-1.5 focus:outline-none focus:border-brand-800";
+const selectClass = "text-xs bg-ink-950 border border-line text-gray-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-gold/40";
 
 export default function KanbanBoard({ tasks, onDragEnd, onTaskClick }) {
   const [search, setSearch] = useState('');
@@ -50,50 +50,52 @@ export default function KanbanBoard({ tasks, onDragEnd, onTaskClick }) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="relative">
-          <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search..."
-            className="pl-8 pr-3 py-1.5 text-xs bg-white border border-brand-300 text-brand-600 rounded focus:outline-none focus:border-brand-800 w-44"
-          />
+        <div className="flex items-center gap-3 flex-wrap bg-ink-900 border border-line rounded-xl px-3 py-2.5 w-full">
+          <div className="relative">
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search..."
+              className="pl-8 pr-3 py-1.5 text-xs bg-ink-950 border border-line text-gray-100 placeholder-gray-600 rounded-lg focus:outline-none focus:border-gold/40 w-44"
+            />
+          </div>
+
+          <select value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)} className={selectClass}>
+            <option value="all">Assignee: All</option>
+            {assignees.map(([id, name]) => (
+              <option key={id} value={id}>{name}</option>
+            ))}
+          </select>
+
+          <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} className={selectClass}>
+            <option value="all">Priority: All</option>
+            {PRIORITIES.map((p) => (
+              <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+            ))}
+          </select>
+
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className={selectClass}>
+            <option value="all">Status: All</option>
+            {Object.entries(STATUSES).map(([key, label]) => (
+              <option key={key} value={key}>{label}</option>
+            ))}
+          </select>
+
+          {hasActiveFilters && (
+            <button
+              onClick={() => { setSearch(''); setFilterPriority('all'); setFilterAssignee('all'); setFilterStatus('all'); }}
+              className="text-xs text-gold hover:text-gray-100 transition-colors"
+            >
+              Clear filters
+            </button>
+          )}
+
+          {hasActiveFilters && (
+            <span className="text-[11px] text-gray-500 ml-auto">{filteredCount} of {tasks.length} tasks</span>
+          )}
         </div>
-
-        <select value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)} className={selectClass}>
-          <option value="all">Assignee: All</option>
-          {assignees.map(([id, name]) => (
-            <option key={id} value={id}>{name}</option>
-          ))}
-        </select>
-
-        <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} className={selectClass}>
-          <option value="all">Priority: All</option>
-          {PRIORITIES.map((p) => (
-            <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
-          ))}
-        </select>
-
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className={selectClass}>
-          <option value="all">Status: All</option>
-          {Object.entries(STATUSES).map(([key, label]) => (
-            <option key={key} value={key}>{label}</option>
-          ))}
-        </select>
-
-        {hasActiveFilters && (
-          <button
-            onClick={() => { setSearch(''); setFilterPriority('all'); setFilterAssignee('all'); setFilterStatus('all'); }}
-            className="text-xs text-brand-500 hover:text-brand-900 transition-colors"
-          >
-            Clear filters
-          </button>
-        )}
-
-        {hasActiveFilters && (
-          <span className="text-[11px] text-brand-500 ml-auto">{filteredCount} of {tasks.length} tasks</span>
-        )}
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
@@ -102,11 +104,11 @@ export default function KanbanBoard({ tasks, onDragEnd, onTaskClick }) {
             const columnTasks = getColumnTasks(column.id);
 
             return (
-              <div key={column.id} className="flex-shrink-0 w-72 bg-brand-100 border border-brand-300 p-3">
-                <div className="flex items-center gap-2.5 mb-3 px-1.5">
+              <div key={column.id} className="flex-shrink-0 w-72 bg-ink-900/40 border border-line rounded-xl p-3">
+                <div className="flex items-center gap-2.5 mb-3 px-1.5 bg-ink-900/60 rounded-lg py-2">
                   <div className={`w-2.5 h-2.5 rounded-full ${column.dot}`} />
-                  <h3 className="text-sm font-semibold text-brand-900">{column.title}</h3>
-                  <span className="text-[11px] font-semibold text-brand-500 bg-white border border-brand-300 px-2 py-0.5 rounded-full">
+                  <h3 className="text-sm font-semibold text-white">{column.title}</h3>
+                  <span className="text-[11px] font-semibold text-gray-400 bg-ink-800 border border-line px-2 py-0.5 rounded-full">
                     {columnTasks.length}
                   </span>
                 </div>
@@ -117,7 +119,7 @@ export default function KanbanBoard({ tasks, onDragEnd, onTaskClick }) {
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       className={`space-y-2 min-h-[200px] p-0.5 transition-colors duration-200 ${
-                        snapshot.isDraggingOver ? 'bg-brand-800/5 ring-1 ring-brand-800/20 ring-inset' : ''
+                        snapshot.isDraggingOver ? 'bg-gold/5 ring-1 ring-gold/20 ring-inset rounded-lg' : ''
                       }`}
                     >
                       {columnTasks.map((task, index) => (
@@ -128,7 +130,7 @@ export default function KanbanBoard({ tasks, onDragEnd, onTaskClick }) {
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
                               style={provided.draggableProps.style}
-                              className={`${snapshot.isDragging ? 'rotate-1 scale-[1.02] shadow-xl shadow-brand-900/10' : ''} transition-transform duration-150`}
+                              className={`${snapshot.isDragging ? 'rotate-1 scale-[1.02] shadow-xl shadow-black/40' : ''} transition-transform duration-150`}
                             >
                               <TaskCard task={task} onClick={onTaskClick} />
                             </div>

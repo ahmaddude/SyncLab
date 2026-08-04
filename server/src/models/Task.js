@@ -54,6 +54,20 @@ const taskSchema = new mongoose.Schema(
       default: 0,
     },
     comments: [commentSchema],
+    subtasks: [
+      {
+        title: {
+          type: String,
+          required: true,
+          trim: true,
+          maxlength: 300,
+        },
+        done: {
+          type: Boolean,
+          default: false,
+        },
+      },
+    ],
     dueDate: {
       type: Date,
       default: null,

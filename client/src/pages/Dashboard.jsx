@@ -4,36 +4,29 @@ import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import CalendarWidget from '../components/CalendarWidget';
 
-const SEAL_TONES = [
-  { bg: '#1B2A4A', fg: '#C9A66B' },
-  { bg: '#2B3A55', fg: '#E5E7EB' },
-  { bg: '#0F1F38', fg: '#C9A66B' },
-  { bg: '#3A4A63', fg: '#E5E7EB' },
-];
-
-const STATUS_MAP = {
-  todo: { label: 'To Do', bg: 'bg-brand-100', text: 'text-brand-600' },
-  in_progress: { label: 'In Progress', bg: 'bg-blue-50', text: 'text-blue-600' },
-  review: { label: 'Review', bg: 'bg-amber-50', text: 'text-amber-600' },
-  done: { label: 'Done', bg: 'bg-emerald-50', text: 'text-emerald-600' },
+const STATUS_ICONS = {
+  done: 'fa-solid fa-circle-check text-emerald text-sm',
+  in_progress: 'fa-solid fa-spinner text-gold text-sm animate-spin',
+  review: 'fa-solid fa-eye text-gold text-sm',
+  todo: 'fa-regular fa-circle text-gray-500 text-sm',
 };
 
-const PRIORITY_MAP = {
-  low: { bg: 'bg-brand-100', text: 'text-brand-600' },
-  medium: { bg: 'bg-blue-50', text: 'text-blue-600' },
-  high: { bg: 'bg-amber-50', text: 'text-amber-600' },
-  urgent: { bg: 'bg-red-50', text: 'text-red-600' },
+const PRIORITY_BADGES = {
+  urgent: { label: 'Urgent', cls: 'bg-coral/10 text-coral' },
+  high: { label: 'High', cls: 'bg-coral/10 text-coral' },
+  medium: { label: 'Medium', cls: 'bg-gold/10 text-gold' },
+  low: { label: 'Low', cls: 'bg-ink-800 border border-line text-gray-400' },
 };
 
 const ACTIVITY_ICONS = {
-  task_created: { color: 'text-gold-600', bg: 'bg-brand-800', d: 'M12 4v16m8-8H4' },
-  task_updated: { color: 'text-gold-500', bg: 'bg-brand-700', d: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
-  task_moved: { color: 'text-gold-400', bg: 'bg-brand-800', d: 'M13 7l5 5m0 0l-5 5m5-5H6' },
-  task_deleted: { color: 'text-red-400', bg: 'bg-red-900/30', d: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' },
-  comment_added: { color: 'text-gold-500', bg: 'bg-brand-700', d: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
+  task_created: { icon: 'fa-solid fa-code-branch text-xs', cls: 'bg-gold/10 text-gold' },
+  task_updated: { icon: 'fa-solid fa-bolt text-xs', cls: 'bg-emerald/10 text-emerald' },
+  task_moved: { icon: 'fa-solid fa-arrow-right-arrow-left text-xs', cls: 'bg-gold/10 text-gold' },
+  task_deleted: { icon: 'fa-solid fa-trash-can text-xs', cls: 'bg-coral/10 text-coral' },
+  comment_added: { icon: 'fa-solid fa-comment text-xs', cls: 'bg-gold/10 text-gold' },
 };
 
-const DEFAULT_ACTIVITY_ICON = { color: 'text-brand-400', bg: 'bg-brand-100', d: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' };
+const DEFAULT_ACTIVITY_ICON = { icon: 'fa-solid fa-rocket text-xs', cls: 'bg-ink-800 border border-line text-gray-300' };
 
 function initialsOf(name) {
   if (!name) return '?';
@@ -56,7 +49,6 @@ function getTimeAgo(date) {
 export default function Dashboard() {
   const { user } = useAuth();
   const [summary, setSummary] = useState(null);
-  const [orgs, setOrgs] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -70,7 +62,6 @@ export default function Dashboard() {
     try {
       const data = await api.get('/dashboard/summary');
       setSummary(data);
-      setOrgs(data.orgs);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -82,9 +73,9 @@ export default function Dashboard() {
     e.preventDefault();
     setCreating(true);
     try {
-      const org = await api.post('/orgs', { name, description });
-      setOrgs([org, ...orgs]);
+      await api.post('/orgs', { name, description });
       setName(''); setDescription(''); setShowCreate(false);
+      fetchSummary();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -95,58 +86,184 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-        <div className="w-7 h-7 border-2 border-brand-300 border-t-gold-500 rounded-full animate-spin" />
+        <div className="w-7 h-7 border-2 border-ink-800 border-t-gold rounded-full animate-spin" />
       </div>
     );
   }
 
+  const firstName = user?.name?.split(' ')[0] || 'there';
   const totalTasks = summary ? summary.taskStats.todo + summary.taskStats.in_progress + summary.taskStats.review + summary.taskStats.done : 0;
+  const inProgressPct = totalTasks > 0 ? Math.round((summary.taskStats.in_progress / totalTasks) * 100) : 0;
+
+  const activityList = summary?.recentActivity || [];
 
   return (
-    <div className="min-h-screen">
-      <div className="h-[3px] bg-brand-800" />
-      <div className="h-px bg-gold-400" />
-      <div className="h-px bg-brand-800 mt-px" />
+    <div className="px-8 py-7">
+      {error && (
+        <div className="mb-6 px-4 py-3 bg-coral/10 text-coral text-sm border-l-2 border-coral/40 rounded-r-lg flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError('')} className="text-coral/70 hover:text-coral"><i className="fa-solid fa-xmark"></i></button>
+        </div>
+      )}
 
-      <div className="max-w-6xl mx-auto px-6 sm:px-8 py-12">
-        <div className="flex items-end justify-between mb-10 pb-6 border-b border-brand-300">
-          <div>
-            <p className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-2">
-              Workspace Overview
-            </p>
-            <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">
-              {user?.name ? `Welcome back, ${user.name.split(' ')[0]}!` : 'Dashboard'}
-            </h1>
+      {/* Greeting */}
+      <section className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold text-white">Welcome back, {firstName}</h2>
+          <p className="text-sm text-gray-400 mt-0.5">Here's what's moving across your workspace today.</p>
+        </div>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gold/40 bg-gold/10 text-sm text-gold hover:bg-gold/20 transition-colors shrink-0"
+        >
+          <i className="fa-solid fa-plus text-xs"></i>
+          New Organization
+        </button>
+      </section>
+
+      {/* KPI row */}
+      <section className="grid grid-cols-4 gap-5 mb-6">
+        <div className="bg-ink-850 border border-line rounded-xl p-5 relative overflow-hidden group hover:border-gold/30 transition-colors">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-gray-400">Active Projects</p>
+              <p className="text-3xl font-semibold text-white mt-1.5">{summary?.projectCount || 0}</p>
+            </div>
+            <div className="w-9 h-9 rounded-lg bg-gold/10 flex items-center justify-center text-gold"><i className="fa-solid fa-folder-open"></i></div>
           </div>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gold-500 hover:bg-gold-600 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New Organization
-          </button>
         </div>
 
-        {error && (
-          <div className="mb-8 px-4 py-3 bg-[#FBEEEE] text-[#9B3B3B] text-sm border-l-2 border-[#9B3B3B]">
-            {error}
-          </div>
-        )}
-
-        {showCreate && (
-          <div className="mb-10 border border-brand-200">
-            <div className="bg-brand-800 px-6 py-4">
-              <h2 className="text-[15px] font-semibold text-white font-heading">
-                Create Organization
-              </h2>
+        <div className="bg-ink-850 border border-line rounded-xl p-5 relative overflow-hidden group hover:border-gold/30 transition-colors">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-gray-400">Total Tasks</p>
+              <p className="text-3xl font-semibold text-white mt-1.5">{totalTasks}</p>
             </div>
-            <form onSubmit={handleCreate} className="p-6 space-y-5 bg-white">
+            <div className="w-9 h-9 rounded-lg bg-gold/10 flex items-center justify-center text-gold"><i className="fa-solid fa-list-check"></i></div>
+          </div>
+          <svg viewBox="0 0 100 30" className="mt-2 h-7 w-full" preserveAspectRatio="none">
+            <path d="M0 26 Q15 10 30 18 T60 12 T100 4" fill="none" stroke="#d4af37" strokeWidth="2" className="spark" />
+          </svg>
+        </div>
+
+        <div className="bg-ink-850 border border-line rounded-xl p-5 relative overflow-hidden group hover:border-gold/30 transition-colors">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-gray-400">In Progress</p>
+              <p className="text-3xl font-semibold text-white mt-1.5">{summary?.taskStats.in_progress || 0}</p>
+            </div>
+            <div className="w-9 h-9 rounded-full bg-gold/10 flex items-center justify-center text-gold"><i className="fa-solid fa-spinner"></i></div>
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <div className="flex-1 h-1.5 rounded-full bg-ink-800 overflow-hidden"><div className="h-full bg-gold rounded-full transition-all" style={{ width: `${inProgressPct}%` }}></div></div>
+            <span className="text-[11px] text-gray-400">{inProgressPct}%</span>
+          </div>
+        </div>
+
+        <div className="bg-ink-850 border border-line rounded-xl p-5 relative overflow-hidden group hover:border-gold/30 transition-colors">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-gray-400">Completed</p>
+              <p className="text-3xl font-semibold text-white mt-1.5">{summary?.taskStats.done || 0}</p>
+            </div>
+            <div className="w-9 h-9 rounded-lg bg-emerald/10 flex items-center justify-center text-emerald"><i className="fa-solid fa-circle-check"></i></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main grid */}
+      <section className="grid grid-cols-12 gap-6 items-start">
+
+        {/* Primary column */}
+        <div className="col-span-8 space-y-6">
+
+          {/* My Tasks */}
+          <div className="bg-ink-850 border border-line rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+              <h3 className="text-sm font-semibold text-white">My Tasks</h3>
+            </div>
+            {summary?.myTasks?.length > 0 ? (
+              <div className="divide-y divide-line/60">
+                {summary.myTasks.map((task) => {
+                  const isUrgent = task.priority === 'urgent' || task.priority === 'high';
+                  const icon = isUrgent ? 'fa-solid fa-circle-exclamation text-coral text-sm' : (STATUS_ICONS[task.status] || STATUS_ICONS.todo);
+                  const badge = task.status === 'done'
+                    ? { label: 'Done', cls: 'bg-emerald/10 text-emerald' }
+                    : (PRIORITY_BADGES[task.priority] || PRIORITY_BADGES.medium);
+                  return (
+                    <Link
+                      key={task._id}
+                      to={`/projects/${task.project?._id || ''}`}
+                      className="flex items-center gap-4 px-5 py-3.5 hover:bg-ink-800/50 transition-colors"
+                    >
+                      <i className={icon}></i>
+                      <span className="flex-1 text-sm text-gray-200 truncate">{task.title}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${badge.cls}`}>{badge.label}</span>
+                      <div className="w-7 h-7 rounded-full bg-ink-800 border border-line ring-1 ring-gold/30 flex items-center justify-center text-[10px] font-semibold text-gold shrink-0">
+                        {initialsOf(task.assignee?.name || '?')}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="px-5 py-10 text-center text-sm text-gray-500">No tasks assigned to you yet.</div>
+            )}
+          </div>
+
+          {/* Recent Activity */}
+          <div className="bg-ink-850 border border-line rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+              <h3 className="text-sm font-semibold text-white">Recent Activity</h3>
+            </div>
+            {activityList.length > 0 ? (
+              <div className="divide-y divide-line/60">
+                {activityList.map((activity) => {
+                  const style = ACTIVITY_ICONS[activity.action] || DEFAULT_ACTIVITY_ICON;
+                  return (
+                    <div key={activity._id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-ink-800/50 transition-colors">
+                      <div className={`w-8 h-8 rounded-lg ${style.cls} flex items-center justify-center shrink-0`}>
+                        <i className={style.icon}></i>
+                      </div>
+                      <span className="flex-1 text-sm text-gray-200 min-w-0">
+                        <span className="font-medium text-gray-100">{activity.user?.name || 'Someone'}</span>{' '}
+                        <span className="truncate">{activity.details}</span>
+                        {activity.project && (
+                          <Link to={`/projects/${activity.project._id}`} className="text-gold hover:text-gold-hover ml-1">
+                            {activity.project.name}
+                          </Link>
+                        )}
+                      </span>
+                      <span className="text-xs text-gray-500 shrink-0">{getTimeAgo(activity.createdAt)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="px-5 py-10 text-center text-sm text-gray-500">No activity yet.</div>
+            )}
+          </div>
+        </div>
+
+        {/* Secondary column */}
+        <div className="col-span-4 space-y-6">
+          <CalendarWidget tasks={summary?.tasksWithDueDates || []} />
+        </div>
+      </section>
+
+      {/* Create Organization modal */}
+      {showCreate && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => setShowCreate(false)}>
+          <div className="w-full max-w-md bg-ink-900 border border-line rounded-xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-line">
+              <h2 className="text-sm font-semibold text-white">Create Organization</h2>
+              <button onClick={() => setShowCreate(false)} className="text-gray-400 hover:text-white transition-colors">
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <form onSubmit={handleCreate} className="p-6 space-y-5">
               <div>
-                <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">
-                  Name
-                </label>
+                <label className="block text-[11px] font-semibold tracking-wide text-gray-400 uppercase mb-2">Name</label>
                 <input
                   type="text" required value={name} onChange={(e) => setName(e.target.value)}
                   className="input-field"
@@ -155,9 +272,7 @@ export default function Dashboard() {
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">
-                  Description
-                </label>
+                <label className="block text-[11px] font-semibold tracking-wide text-gray-400 uppercase mb-2">Description</label>
                 <input
                   type="text" value={description} onChange={(e) => setDescription(e.target.value)}
                   className="input-field"
@@ -167,229 +282,21 @@ export default function Dashboard() {
               <div className="flex gap-3 pt-1">
                 <button
                   type="submit" disabled={creating}
-                  className="px-4 py-2.5 text-sm font-medium text-white bg-gold-500 hover:bg-gold-600 disabled:opacity-50 transition-colors"
+                  className="px-4 py-2.5 text-sm font-semibold text-ink-950 bg-gold hover:bg-gold-hover rounded-lg disabled:opacity-50 transition-colors"
                 >
-                  {creating ? 'Creating\u2026' : 'Create Organization'}
+                  {creating ? 'Creating…' : 'Create Organization'}
                 </button>
                 <button
                   type="button" onClick={() => setShowCreate(false)}
-                  className="px-4 py-2.5 text-sm font-medium text-brand-500 hover:text-brand-900 transition-colors"
+                  className="px-4 py-2.5 text-sm font-medium text-gray-400 hover:text-white transition-colors"
                 >
                   Cancel
                 </button>
               </div>
             </form>
           </div>
-        )}
-
-        {summary && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-            <StatCard label="Projects" value={summary.projectCount} icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            <StatCard label="Total Tasks" value={totalTasks} icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            <StatCard label="In Progress" value={summary.taskStats.in_progress} icon="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            <StatCard label="Completed" value={summary.taskStats.done} icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </div>
-        )}
-
-        {summary && summary.myTasks.length > 0 && (
-          <div className="mb-10 border border-brand-200">
-            <div className="bg-brand-800 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-[15px] font-semibold text-white font-heading">My Tasks</h2>
-              <span className="text-xs text-gold-400 font-medium">{summary.myTasks.length} assigned to you</span>
-            </div>
-            <div className="divide-y divide-brand-200 bg-white">
-              {summary.myTasks.map((task) => {
-                const s = STATUS_MAP[task.status] || STATUS_MAP.todo;
-                const p = PRIORITY_MAP[task.priority] || PRIORITY_MAP.medium;
-                return (
-                  <Link
-                    key={task._id}
-                    to={`/projects/${task.project?._id || ''}`}
-                    className="flex items-center gap-4 px-6 py-3.5 hover:bg-brand-50 transition-colors group"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-brand-900 group-hover:text-brand-800 truncate">{task.title}</p>
-                      <p className="text-xs text-brand-500 mt-0.5">{task.project?.name || 'Unknown project'}</p>
-                    </div>
-                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.bg} ${s.text}`}>
-                      {s.label}
-                    </span>
-                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${p.bg} ${p.text}`}>
-                      {task.priority}
-                    </span>
-                    {task.dueDate && (
-                      <span className="shrink-0 text-[11px] text-brand-500 w-20 text-right">
-                        {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {summary && summary.myTasks.length === 0 && totalTasks > 0 && (
-          <div className="mb-10 bg-white border border-brand-200 px-6 py-5 flex items-center gap-4">
-            <div className="w-10 h-10 bg-brand-800 flex items-center justify-center shrink-0">
-              <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-brand-900">All caught up</p>
-              <p className="text-xs text-brand-500">No tasks are currently assigned to you.</p>
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <p className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">
-              Calendar
-            </p>
-            <CalendarWidget tasks={summary?.tasksWithDueDates || []} />
-
-            <div className="mt-14">
-              <h2 className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">
-                Organizations
-              </h2>
-          {orgs.length === 0 ? (
-              <div className="text-center py-20 border border-dashed border-brand-300">
-                <div className="w-14 h-14 border border-gold-400 flex items-center justify-center mx-auto mb-5 bg-brand-800">
-                  <svg className="w-6 h-6 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-brand-900 mb-2 font-heading">
-                  No organizations yet
-                </h3>
-                <p className="text-brand-500 max-w-sm mx-auto text-sm">
-                  Create your first organization to start collaborating with your team.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {orgs.map((org, i) => {
-                  const tone = SEAL_TONES[i % SEAL_TONES.length];
-                  return (
-                    <Link
-                      key={org._id}
-                      to={`/organizations/${org._id}`}
-                      className="group block bg-white border border-brand-300 hover:border-gold-400 hover:shadow-[0_2px_12px_rgba(201,166,107,0.15)] transition-all relative overflow-hidden"
-                    >
-                      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gold-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className="flex items-start gap-4 p-5 pb-4">
-                        <div
-                          className="w-11 h-11 flex items-center justify-center shrink-0 text-[15px] font-semibold font-heading"
-                          style={{ backgroundColor: tone.bg, color: tone.fg }}
-                        >
-                          {initialsOf(org.name)}
-                        </div>
-                        <div className="min-w-0 pt-0.5">
-                          <h3 className="font-semibold text-brand-900 truncate group-hover:text-brand-800">
-                            {org.name}
-                          </h3>
-                          <p className="text-xs text-brand-500 mt-1 tracking-wide uppercase">
-                            {org.members.length} {org.members.length === 1 ? 'Member' : 'Members'}
-                          </p>
-                        </div>
-                      </div>
-                      {org.description && (
-                        <p className="px-5 text-sm text-brand-500 line-clamp-2 leading-relaxed">
-                          {org.description}
-                        </p>
-                      )}
-                      <div className="mt-4 px-5 py-3 border-t border-brand-200 flex items-center gap-1.5">
-                        {org.members.slice(0, 5).map((m) => (
-                          <div
-                            key={m.user._id}
-                            className="w-6 h-6 bg-brand-800 border border-white ring-1 ring-gold-400 flex items-center justify-center text-[9px] font-semibold text-gold-400 -ml-1.5 first:ml-0"
-                          >
-                            {m.user.name?.[0]?.toUpperCase() || '?'}
-                          </div>
-                        ))}
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
         </div>
-          </div>
-
-          <div className="lg:col-span-1">
-            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-gold-500 uppercase mb-4">
-              Recent Activity
-            </h2>
-            <div className="border border-brand-200">
-              {summary && summary.recentActivity.length > 0 && (
-                <div className="bg-brand-800 px-5 py-3">
-                  <span className="text-[11px] font-semibold tracking-[0.18em] text-gold-400 uppercase">Latest Updates</span>
-                </div>
-              )}
-              {summary && summary.recentActivity.length > 0 ? (
-                <div className="divide-y divide-brand-200 bg-white">
-                  {summary.recentActivity.map((activity) => {
-                    const style = ACTIVITY_ICONS[activity.action] || DEFAULT_ACTIVITY_ICON;
-                    return (
-                      <div key={activity._id} className="px-5 py-3.5 flex gap-3">
-                        <div className={`w-7 h-7 ${style.bg} flex items-center justify-center shrink-0 mt-0.5`}>
-                          <svg className={`w-3.5 h-3.5 ${style.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={style.d} />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-brand-500 leading-snug">
-                            <span className="font-medium text-brand-900">{activity.user?.name || 'Someone'}</span>
-                            {' '}
-                            <span>{activity.details}</span>
-                          </p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[11px] text-brand-500">{getTimeAgo(activity.createdAt)}</span>
-                            {activity.project && (
-                              <>
-                                <span className="text-brand-300">&middot;</span>
-                                <Link
-                                  to={`/projects/${activity.project._id}`}
-                                  className="text-[11px] text-brand-800 hover:text-brand-700 font-medium transition-colors"
-                                >
-                                  {activity.project.name}
-                                </Link>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="px-5 py-8 text-center">
-                  <p className="text-sm text-brand-500">No activity yet</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon }) {
-  return (
-    <div className="bg-brand-800 border border-brand-700 p-5 relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gold-400" />
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] font-semibold tracking-[0.18em] text-gold-400 uppercase">{label}</span>
-        <div className="w-8 h-8 bg-brand-700 flex items-center justify-center">
-          <svg className="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={icon} />
-          </svg>
-        </div>
-      </div>
-      <p className="text-[28px] leading-none text-gold-400 font-heading tracking-tight">{value}</p>
+      )}
     </div>
   );
 }

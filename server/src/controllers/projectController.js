@@ -39,6 +39,21 @@ exports.createProject = async (req, res) => {
   }
 };
 
+exports.getMyProjects = async (req, res) => {
+  try {
+    const orgs = await Organization.find({ 'members.user': req.user._id }).select('_id');
+    const orgIds = orgs.map((o) => o._id);
+    const workspaces = await Workspace.find({ organization: { $in: orgIds } }).select('_id');
+    const workspaceIds = workspaces.map((w) => w._id);
+    const projects = await Project.find({ workspace: { $in: workspaceIds } })
+      .populate('createdBy', 'name email avatar')
+      .sort('-createdAt');
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.getProjects = async (req, res) => {
   try {
     const { workspace: workspaceId } = req.query;

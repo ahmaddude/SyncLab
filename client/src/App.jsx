@@ -1,7 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import Topbar from './components/Topbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -16,10 +18,33 @@ function PublicRoute({ children }) {
   return user ? <Navigate to="/dashboard" replace /> : children;
 }
 
+function AppShell({ children }) {
+  const [sidebarOpen, setSidebarOpen] = useState(
+    () => localStorage.getItem('synclab.sidebar') !== 'hidden'
+  );
+
+  const toggleSidebar = () => {
+    setSidebarOpen((prev) => {
+      const next = !prev;
+      localStorage.setItem('synclab.sidebar', next ? 'open' : 'hidden');
+      return next;
+    });
+  };
+
+  return (
+    <div className="h-screen w-full overflow-hidden flex bg-ink-950 text-gray-100">
+      <Sidebar open={sidebarOpen} />
+      <div className="flex-1 flex flex-col min-w-0">
+        <Topbar onToggleSidebar={toggleSidebar} />
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   return (
-    <div className="min-h-screen bg-brand-50">
-      <Navbar />
+    <div className="min-h-screen bg-ink-950 text-gray-100">
       <Routes>
         <Route
           path="/login"
@@ -41,7 +66,9 @@ export default function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <AppShell>
+                <Dashboard />
+              </AppShell>
             </ProtectedRoute>
           }
         />
@@ -49,7 +76,9 @@ export default function App() {
           path="/organizations/:id"
           element={
             <ProtectedRoute>
-              <OrgPage />
+              <AppShell>
+                <OrgPage />
+              </AppShell>
             </ProtectedRoute>
           }
         />
@@ -57,7 +86,9 @@ export default function App() {
           path="/workspaces/:id"
           element={
             <ProtectedRoute>
-              <WorkspacePage />
+              <AppShell>
+                <WorkspacePage />
+              </AppShell>
             </ProtectedRoute>
           }
         />
@@ -65,7 +96,9 @@ export default function App() {
           path="/projects/:id"
           element={
             <ProtectedRoute>
-              <ProjectPage />
+              <AppShell>
+                <ProjectPage />
+              </AppShell>
             </ProtectedRoute>
           }
         />
@@ -73,7 +106,9 @@ export default function App() {
           path="/documents/:id"
           element={
             <ProtectedRoute>
-              <DocumentEditor />
+              <AppShell>
+                <DocumentEditor />
+              </AppShell>
             </ProtectedRoute>
           }
         />

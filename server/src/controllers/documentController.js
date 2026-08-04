@@ -1,6 +1,22 @@
 const Document = require('../models/Document');
 const Workspace = require('../models/Workspace');
+const Organization = require('../models/Organization');
 const { getUserRole } = require('../middleware/permissions');
+
+exports.getMyDocuments = async (req, res) => {
+  try {
+    const orgs = await Organization.find({ 'members.user': req.user._id }).select('_id');
+    const orgIds = orgs.map((o) => o._id);
+    const workspaces = await Workspace.find({ organization: { $in: orgIds } }).select('_id');
+    const workspaceIds = workspaces.map((w) => w._id);
+    const docs = await Document.find({ workspace: { $in: workspaceIds } })
+      .populate('createdBy', 'name email avatar')
+      .sort('-updatedAt');
+    res.json(docs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 exports.createDocument = async (req, res) => {
   try {

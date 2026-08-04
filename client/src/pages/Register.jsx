@@ -26,54 +26,59 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="relative min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-12 overflow-hidden">
+      <div aria-hidden className="absolute top-1/4 -left-40 w-[26rem] h-[26rem] rounded-full bg-gold/5 blur-3xl pointer-events-none" />
+      <div aria-hidden className="absolute -bottom-32 -right-40 w-[30rem] h-[30rem] rounded-full bg-gold/5 blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-md relative">
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-brand-800 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+          <div className="flex items-center justify-center gap-3 mb-5">
+            <div className="relative w-11 h-11 rotate-45 border border-gold/40 bg-gold/10 flex items-center justify-center shrink-0 rounded-lg">
+              <svg className="w-5 h-5 text-gold -rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div className="text-left">
+              <div className="text-xl font-bold text-white tracking-tight">SyncLab</div>
+              <div className="text-xs font-medium text-gold tracking-wide">Work together, ship faster</div>
+            </div>
           </div>
-          <h1 className="text-[34px] leading-none text-brand-900 font-heading tracking-tight">Create your account</h1>
-          <p className="text-brand-500 mt-2">Start collaborating with your team</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Create your account</h1>
+          <p className="text-gray-400 mt-2">Start collaborating with your team</p>
         </div>
 
-        <div className="bg-white border border-brand-300">
-          <div className="px-6 py-4 border-b border-brand-200">
-            <h2 className="text-[15px] font-semibold text-brand-900 font-heading">Create Account</h2>
-          </div>
-
+        <div className="bg-ink-900 border border-line rounded-2xl glow-gold p-8">
           {error && (
-            <div className="mx-6 mt-4 px-4 py-3 bg-[#FBEEEE] text-[#9B3B3B] text-sm border-l-2 border-[#9B3B3B]">
+            <div className="mb-6 bg-coral/10 text-coral border border-coral/20 rounded-xl px-4 py-3 text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">Full name</label>
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Full name</label>
               <input type="text" required value={name} onChange={(e) => setName(e.target.value)}
-                className="input-field" placeholder="John Doe" />
+                className="w-full bg-ink-950 border border-line rounded-xl px-4 py-3.5 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-gold/40" placeholder="John Doe" />
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">Email</label>
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Email</label>
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                className="input-field" placeholder="you@company.com" />
+                className="w-full bg-ink-950 border border-line rounded-xl px-4 py-3.5 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-gold/40" placeholder="you@company.com" />
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold tracking-wide text-brand-500 uppercase mb-2">Password</label>
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Password</label>
               <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)}
-                className="input-field" placeholder="At least 6 characters" />
+                className="w-full bg-ink-950 border border-line rounded-xl px-4 py-3.5 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-gold/40" placeholder="At least 6 characters" />
             </div>
 
             <div className="flex gap-3 pt-1">
               <button type="submit" disabled={loading}
-                className="px-4 py-2.5 text-sm font-medium text-white bg-brand-800 hover:bg-brand-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+                className="w-full py-3.5 px-4 rounded-xl bg-gold text-ink-950 hover:bg-gold-hover font-semibold transition-all active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2">
                 {loading ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-ink-950/30 border-t-ink-950 rounded-full animate-spin" />
                     Creating account...
                   </>
                 ) : 'Create account'}
@@ -81,10 +86,10 @@ export default function Register() {
             </div>
           </form>
 
-          <div className="px-6 py-4 border-t border-brand-200 text-center">
-            <p className="text-sm text-brand-500">
+          <div className="mt-6 pt-6 border-t border-line text-center">
+            <p className="text-sm text-gray-400">
               Already have an account?{' '}
-              <Link to="/login" className="font-semibold text-brand-800 hover:text-brand-700 transition-colors">
+              <Link to="/login" className="font-semibold text-gold hover:text-gold-hover transition-colors">
                 Sign in
               </Link>
             </p>

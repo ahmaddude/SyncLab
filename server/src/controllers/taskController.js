@@ -116,7 +116,7 @@ exports.updateTask = async (req, res) => {
       return res.status(403).json({ message: 'Only owners and admins can edit task details' });
     }
 
-    const { title, description, status, priority, assignee, dueDate } = req.body;
+    const { title, description, status, priority, assignee, dueDate, subtasks } = req.body;
     const oldStatus = task.status;
     const oldAssignee = task.assignee?.toString();
 
@@ -126,6 +126,7 @@ exports.updateTask = async (req, res) => {
     if (assignee !== undefined) task.assignee = assignee;
     if (dueDate !== undefined) task.dueDate = dueDate;
     if (status !== undefined) task.status = status;
+    if (subtasks !== undefined) task.subtasks = subtasks;
 
     await task.save();
 
