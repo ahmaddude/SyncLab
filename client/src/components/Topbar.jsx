@@ -23,7 +23,7 @@ export default function Topbar({ onToggleSidebar }) {
   };
 
   return (
-    <header className="h-16 shrink-0 border-b border-line flex items-center justify-between px-8 bg-ink-950/80 backdrop-blur">
+    <header className="h-16 shrink-0 border-b border-line flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-ink-950/80 backdrop-blur">
       <div className="flex items-center gap-3 min-w-0">
         <button
           onClick={onToggleSidebar}

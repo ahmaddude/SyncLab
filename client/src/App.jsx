@@ -19,9 +19,11 @@ function PublicRoute({ children }) {
 }
 
 function AppShell({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(
-    () => localStorage.getItem('synclab.sidebar') !== 'hidden'
-  );
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    const stored = localStorage.getItem('synclab.sidebar');
+    if (stored) return stored !== 'hidden';
+    return typeof window !== 'undefined' ? window.innerWidth >= 768 : true;
+  });
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => {

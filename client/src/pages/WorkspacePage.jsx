@@ -103,7 +103,7 @@ export default function WorkspacePage() {
           <span className="text-white font-medium">{workspace.name}</span>
         </div>
 
-        <div className="flex items-center justify-between mb-8 pb-6 border-b border-line">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-line">
           <div>
             <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Workspace</p>
             <h1 className="text-[26px] leading-tight text-white font-heading tracking-tight">{workspace.name}</h1>

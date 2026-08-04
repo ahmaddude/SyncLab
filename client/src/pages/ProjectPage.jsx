@@ -168,8 +168,8 @@ export default function ProjectPage() {
 
   return (
     <div className="min-h-screen bg-ink-950">
-      <div className="max-w-[1400px] mx-auto px-8 py-8">
-        <div className="mb-2 text-sm text-gray-400">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-2 text-sm text-gray-400 flex flex-wrap items-center">
           <Link to="/dashboard" className="hover:text-gold transition-colors">Dashboard</Link>
           <span className="mx-2 text-gray-600">/</span>
           <Link to={`/workspaces/${project.workspace?._id || ''}`} className="hover:text-gold transition-colors">
@@ -179,13 +179,13 @@ export default function ProjectPage() {
           <span className="text-white font-medium">{project.name}</span>
         </div>
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div>
             <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-1">Project</p>
             <h1 className="text-[26px] leading-tight text-white font-heading tracking-tight">{project.name}</h1>
             {project.description && <p className="text-gray-400 mt-1 text-sm">{project.description}</p>}
           </div>
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
             <div className="flex p-1 bg-ink-900 border border-line rounded-lg">
               <button
                 onClick={() => setView('list')}
@@ -223,12 +223,12 @@ export default function ProjectPage() {
         )}
 
         {view === 'board' ? (
-          <div className="flex gap-6 items-start">
+          <div className="flex flex-col xl:flex-row gap-6 items-start">
             <div className="flex-1 min-w-0">
               <KanbanBoard tasks={tasks} onDragEnd={handleDragEnd} onTaskClick={setSelectedTask} />
             </div>
             {showActivity && (
-              <div className="w-80 shrink-0">
+              <div className="w-full xl:w-80 shrink-0">
                 <div className="bg-ink-850 border border-line p-5 sticky top-6 rounded-xl">
                   <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
                     <i className="fa-solid fa-clock-rotate-left text-xs text-gold"></i>
@@ -240,15 +240,15 @@ export default function ProjectPage() {
             )}
           </div>
         ) : (
-          <div className="flex gap-6 items-start">
+          <div className="flex flex-col xl:flex-row gap-6 items-start">
             <div className="flex-1 min-w-0">
               <div className="border border-line rounded-xl bg-ink-850 overflow-hidden">
                 <div className="bg-ink-900/60 border-b border-line px-5 py-4">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                     <h2 className="text-sm font-semibold text-white">Tasks</h2>
                     <span className="text-xs text-gray-500">{filteredTasks.length} shown</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     {TABS.map((t) => (
                       <button
                         key={t}
@@ -318,7 +318,7 @@ export default function ProjectPage() {
               )}
             </div>
 
-            <div className="w-[380px] shrink-0">
+            <div className="w-full xl:w-[380px] shrink-0">
               {selectedTask ? (
                 <TaskDetailPane
                   task={selectedTask}

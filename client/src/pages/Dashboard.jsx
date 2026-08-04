@@ -98,7 +98,7 @@ export default function Dashboard() {
   const activityList = summary?.recentActivity || [];
 
   return (
-    <div className="px-8 py-7">
+    <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-7">
       {error && (
         <div className="mb-6 px-4 py-3 bg-coral/10 text-coral text-sm border-l-2 border-coral/40 rounded-r-lg flex items-center justify-between">
           <span>{error}</span>
@@ -107,7 +107,7 @@ export default function Dashboard() {
       )}
 
       {/* Greeting */}
-      <section className="mb-6 flex items-start justify-between gap-4">
+      <section className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold text-white">Welcome back, {firstName}</h2>
           <p className="text-sm text-gray-400 mt-0.5">Here's what's moving across your workspace today.</p>
@@ -122,7 +122,7 @@ export default function Dashboard() {
       </section>
 
       {/* KPI row */}
-      <section className="grid grid-cols-4 gap-5 mb-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 mb-6">
         <div className="bg-ink-850 border border-line rounded-xl p-5 relative overflow-hidden group hover:border-gold/30 transition-colors">
           <div className="flex items-start justify-between">
             <div>
@@ -172,10 +172,10 @@ export default function Dashboard() {
       </section>
 
       {/* Main grid */}
-      <section className="grid grid-cols-12 gap-6 items-start">
+      <section className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
 
         {/* Primary column */}
-        <div className="col-span-8 space-y-6">
+        <div className="xl:col-span-8 space-y-6">
 
           {/* My Tasks */}
           <div className="bg-ink-850 border border-line rounded-xl overflow-hidden">
@@ -246,7 +246,7 @@ export default function Dashboard() {
         </div>
 
         {/* Secondary column */}
-        <div className="col-span-4 space-y-6">
+        <div className="xl:col-span-4 space-y-6">
           <CalendarWidget tasks={summary?.tasksWithDueDates || []} />
         </div>
       </section>

@@ -123,14 +123,14 @@ export default function OrgPage() {
 
   return (
     <div className="min-h-screen bg-ink-950">
-      <div className="max-w-[1200px] mx-auto px-8 py-8">
-        <div className="mb-2 text-xs text-gray-500">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-2 text-xs text-gray-500 flex flex-wrap items-center">
           <Link to="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>
           <span className="mx-2 text-gray-600">/</span>
           <span className="text-sm font-medium text-white">{org.name}</span>
         </div>
 
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
           <div>
             <p className="text-[11px] font-semibold tracking-widest text-gold uppercase mb-1">Organization</p>
             <h1 className="text-[26px] leading-tight text-white font-heading tracking-tight">{org.name}</h1>
@@ -160,7 +160,7 @@ export default function OrgPage() {
             <div className="bg-ink-800 px-6 py-4 border-b border-line">
               <h2 className="text-sm font-semibold text-white">Invite Member</h2>
             </div>
-            <form onSubmit={handleInvite} className="p-6 flex gap-3 bg-ink-900">
+            <form onSubmit={handleInvite} className="p-6 flex flex-col sm:flex-row gap-3 bg-ink-900">
               <input
                 type="email"
                 required
