@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Notifications from './Notifications';
 
-export default function Topbar({ onToggleSidebar }) {
+export default function Topbar({ onToggleSidebar, sidebarOpen }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -27,10 +27,10 @@ export default function Topbar({ onToggleSidebar }) {
       <div className="flex items-center gap-3 min-w-0">
         <button
           onClick={onToggleSidebar}
-          title="Toggle sidebar"
-          className="flex items-center justify-center w-9 h-9 rounded-lg border border-line bg-ink-900 text-gray-400 hover:text-white hover:bg-ink-850 transition-colors shrink-0"
+          title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+          className="relative z-50 flex items-center justify-center w-9 h-9 rounded-lg border border-line bg-ink-900 text-gray-400 hover:text-white hover:bg-ink-850 transition-colors shrink-0"
         >
-          <i className="fa-solid fa-bars-staggered text-sm"></i>
+          <i className={`fa-solid ${sidebarOpen ? 'fa-xmark' : 'fa-bars-staggered'} text-sm`}></i>
         </button>
       </div>
 

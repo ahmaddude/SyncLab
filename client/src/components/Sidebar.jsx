@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import api from '../utils/api';
 
-export default function Sidebar({ open = true }) {
+export default function Sidebar({ open = true, onClose }) {
   const location = useLocation();
   const [orgs, setOrgs] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -39,12 +39,20 @@ export default function Sidebar({ open = true }) {
   const linkNormal = 'text-gray-400 hover:text-white hover:bg-ink-850';
 
   return (
-    <aside
-      className={`bg-ink-900 border-r flex flex-col shrink-0 relative overflow-hidden transition-all duration-300 ${
-        open ? 'w-[280px] border-line' : 'w-0 border-transparent'
-      }`}
-    >
-      <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-gold/40 via-gold/10 to-transparent" />
+    <>
+      <div
+        onClick={onClose}
+        className={`fixed inset-x-0 top-16 bottom-0 z-30 bg-black/50 md:hidden transition-opacity duration-300 ${
+          open ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      />
+
+      <aside
+        className={`bg-ink-900 border-r flex flex-col shrink-0 overflow-hidden transition-all duration-300 fixed md:relative top-16 bottom-0 md:top-auto md:bottom-auto left-0 z-40 ${
+          open ? 'w-[280px] border-line' : 'w-0 border-transparent'
+        }`}
+      >
+        <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-gold/40 via-gold/10 to-transparent" />
 
       <div className="w-[280px] flex flex-col h-full">
         <Link to="/dashboard" className="px-7 pt-8 pb-6 block">
@@ -150,6 +158,7 @@ export default function Sidebar({ open = true }) {
           </div>
         </nav>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

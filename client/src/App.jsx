@@ -35,9 +35,9 @@ function AppShell({ children }) {
 
   return (
     <div className="h-screen w-full overflow-hidden flex bg-ink-950 text-gray-100">
-      <Sidebar open={sidebarOpen} />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0">
-        <Topbar onToggleSidebar={toggleSidebar} />
+        <Topbar onToggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
