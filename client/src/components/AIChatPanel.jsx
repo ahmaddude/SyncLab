@@ -2,14 +2,14 @@ import { useState, useRef, useEffect } from 'react';
 import api from '../utils/api';
 
 const SUGGESTIONS = [
-  'Summarize this document',
-  'Fix grammar and spelling',
-  'Rewrite this more professionally',
-  'Expand on the key points',
-  'Write an introduction paragraph',
+  { label: 'Summarize this document', action: 'summarize' },
+  { label: 'Fix grammar and spelling', action: 'fix_grammar' },
+  { label: 'Rewrite this more professionally', action: 'rewrite' },
+  { label: 'Expand on the key points', action: 'expand' },
+  { label: 'Write an introduction paragraph', action: 'generate', prompt: 'Write an introduction paragraph for this document.' },
 ];
 
-export default function AIChatPanel() {
+export default function AIChatPanel({ getContext }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,22 +26,29 @@ export default function AIChatPanel() {
     inputRef.current?.focus();
   }, []);
 
-  async function handleSend(msg) {
-    const text = (msg || input).trim();
-    if (!text || loading) return;
+  async function handleSend(display, { action = 'generate', prompt } = {}) {
+    const label = (typeof display === 'string' ? display : input).trim();
+    if (!label || loading) return;
     setInput('');
 
-    const userMsg = { role: 'user', content: text };
+    const docText = (getContext?.() || '').trim();
+
+    if (action !== 'generate' && !docText) {
+      setError('This document is empty. Add some content first.');
+      return;
+    }
+
+    const userMsg = { role: 'user', content: label };
     setMessages((prev) => [...prev, userMsg]);
     setLoading(true);
     setError('');
 
     try {
-      const data = await api.post('/ai/transform', {
-        text,
-        action: 'generate',
-        prompt: text,
-      });
+      const body = action === 'generate'
+        ? { text: docText || label, action, prompt: prompt || label }
+        : { text: docText, action };
+
+      const data = await api.post('/ai/transform', body);
       setMessages((prev) => [...prev, { role: 'assistant', content: data.result }]);
     } catch (err) {
       setError(err.message);
@@ -84,11 +91,11 @@ export default function AIChatPanel() {
             <div className="space-y-2">
               {SUGGESTIONS.map((s) => (
                 <button
-                  key={s}
-                  onClick={() => handleSend(s)}
+                  key={s.label}
+                  onClick={() => handleSend(s.label, { action: s.action, prompt: s.prompt })}
                   className="w-full px-3 py-2 text-xs text-gray-400 bg-ink-850 border border-line hover:border-gold/40 hover:text-gold transition-colors text-left rounded-xl"
                 >
-                  {s}
+                  {s.label}
                 </button>
               ))}
             </div>

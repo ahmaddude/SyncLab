@@ -232,7 +232,7 @@ export default function DocumentEditor() {
       </div>
 
       {showAI && (
-        <AIChatPanel />
+        <AIChatPanel getContext={() => editorRef.current?.innerText || ''} />
       )}
     </div>
   );
