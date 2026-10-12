@@ -3,7 +3,7 @@ const Task = require('../models/Task');
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-const MODEL = 'llama-3.3-70b-versatile';
+const MODEL = 'openai/gpt-oss-120b';
 
 exports.generateTasks = async (req, res) => {
   try {
@@ -28,7 +28,7 @@ exports.generateTasks = async (req, res) => {
     const completion = await groq.chat.completions.create({
       model: MODEL,
       temperature: 0.7,
-      max_tokens: 4096,
+      max_completion_tokens: 4096,
       response_format: { type: 'json_object' },
       messages: [
         {
@@ -113,7 +113,7 @@ exports.transformText = async (req, res) => {
     const completion = await groq.chat.completions.create({
       model: MODEL,
       temperature: action === 'fix_grammar' ? 0.2 : 0.7,
-      max_tokens: 4096,
+      max_completion_tokens: 4096,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userContent },
