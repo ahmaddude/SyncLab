@@ -1,5 +1,6 @@
 const Organization = require('../models/Organization');
 const { getUserRole } = require('../middleware/permissions');
+const { emitToUsers } = require('../socket');
 
 exports.createOrg = async (req, res) => {
   try {
@@ -12,6 +13,7 @@ exports.createOrg = async (req, res) => {
       members: [{ user: req.user._id, role: 'owner' }],
     });
 
+    emitToUsers(req.user._id, 'sidebar:refresh');
     res.status(201).json(org);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -111,6 +113,8 @@ exports.addMember = async (req, res) => {
 
     org.members.push({ user: userToAdd._id, role: memberRole || 'member' });
     await org.save();
+
+    emitToUsers(userToAdd._id, 'sidebar:refresh');
 
     const updated = await Organization.findById(org._id).populate('members.user', 'name email avatar');
     res.json(updated);

@@ -2,6 +2,7 @@ const Project = require('../models/Project');
 const Workspace = require('../models/Workspace');
 const Organization = require('../models/Organization');
 const { getUserRole } = require('../middleware/permissions');
+const { emitToOrgMembers } = require('../socket');
 
 const checkWorkspaceAccess = async (workspaceId, userId) => {
   const workspace = await Workspace.findById(workspaceId);
@@ -33,6 +34,7 @@ exports.createProject = async (req, res) => {
       createdBy: req.user._id,
     });
 
+    emitToOrgMembers(workspace.organization, 'sidebar:refresh');
     res.status(201).json(project);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -127,6 +129,7 @@ exports.updateProject = async (req, res) => {
     if (status) project.status = status;
 
     await project.save();
+    emitToOrgMembers(workspace.organization, 'sidebar:refresh');
     res.json(project);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -154,6 +157,7 @@ exports.deleteProject = async (req, res) => {
     }
 
     await project.deleteOne();
+    emitToOrgMembers(workspace.organization, 'sidebar:refresh');
     res.json({ message: 'Project deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });

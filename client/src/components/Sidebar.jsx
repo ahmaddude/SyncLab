@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import api from '../utils/api';
+import { useSocket } from '../context/SocketContext';
 
 export default function Sidebar({ open = true, onClose }) {
   const location = useLocation();
+  const { socket } = useSocket();
   const [orgs, setOrgs] = useState([]);
   const [projects, setProjects] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleRefresh = () => setRefreshKey((k) => k + 1);
+    socket.on('sidebar:refresh', handleRefresh);
+    return () => socket.off('sidebar:refresh', handleRefresh);
+  }, [socket]);
 
   useEffect(() => {
     let mounted = true;
@@ -27,7 +37,7 @@ export default function Sidebar({ open = true, onClose }) {
     return () => {
       mounted = false;
     };
-  }, [location.pathname]);
+  }, [location.pathname, refreshKey]);
 
   const isWorkspaceActive = location.pathname === '/dashboard';
   const isOrgActive = (id) => location.pathname.startsWith(`/organizations/${id}`);

@@ -2,6 +2,7 @@ const Document = require('../models/Document');
 const Workspace = require('../models/Workspace');
 const Organization = require('../models/Organization');
 const { getUserRole } = require('../middleware/permissions');
+const { emitToOrgMembers } = require('../socket');
 
 exports.getMyDocuments = async (req, res) => {
   try {
@@ -37,6 +38,7 @@ exports.createDocument = async (req, res) => {
     });
 
     const populated = await doc.populate('createdBy', 'name email avatar');
+    emitToOrgMembers(ws.organization, 'sidebar:refresh');
     res.status(201).json(populated);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -94,6 +96,7 @@ exports.updateDocument = async (req, res) => {
     if (content !== undefined) doc.content = content;
 
     await doc.save();
+    emitToOrgMembers(ws.organization, 'sidebar:refresh');
     res.json(doc);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -116,6 +119,7 @@ exports.deleteDocument = async (req, res) => {
     }
 
     await doc.deleteOne();
+    emitToOrgMembers(ws.organization, 'sidebar:refresh');
     res.json({ message: 'Document deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });

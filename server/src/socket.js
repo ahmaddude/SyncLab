@@ -170,4 +170,22 @@ function sendNotification(userId, notification) {
   }
 }
 
-module.exports = { setupSocket, onlineUsers, sendNotification };
+function emitToUsers(userIds, event, payload = {}) {
+  if (!io) return;
+  const list = Array.isArray(userIds) ? userIds : [userIds];
+  const ids = new Set(list.map((id) => id.toString()));
+  for (const [socketId, data] of onlineUsers.entries()) {
+    if (ids.has(data.userId)) {
+      io.to(socketId).emit(event, payload);
+    }
+  }
+}
+
+async function emitToOrgMembers(orgId, event, payload = {}) {
+  if (!io || !orgId) return;
+  const org = await Organization.findById(orgId).select('members.user');
+  if (!org) return;
+  emitToUsers(org.members.map((m) => m.user), event, payload);
+}
+
+module.exports = { setupSocket, onlineUsers, sendNotification, emitToUsers, emitToOrgMembers };
