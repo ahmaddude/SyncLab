@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 import KanbanBoard from '../components/KanbanBoard';
 import CreateTask from '../components/CreateTask';
 import AITaskGenerator from '../components/AITaskGenerator';
@@ -45,6 +46,7 @@ function dueLabel(date) {
 export default function ProjectPage() {
   const { user } = useAuth();
   const { id } = useParams();
+  const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [members, setMembers] = useState([]);
@@ -56,6 +58,8 @@ export default function ProjectPage() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [showActivity, setShowActivity] = useState(false);
   const [showAI, setShowAI] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => { fetchData(); }, [id]);
@@ -136,6 +140,19 @@ export default function ProjectPage() {
     }
   };
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const wsId = project.workspace?._id || project.workspace;
+      await api.delete(`/projects/${id}`);
+      navigate(wsId ? `/workspaces/${wsId}` : '/dashboard');
+    } catch (err) {
+      setError(err.message);
+      setShowDelete(false);
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
@@ -210,6 +227,13 @@ export default function ProjectPage() {
               <i className="fa-solid fa-wand-magic-sparkles text-xs text-gold"></i>
               AI Generate
             </button>
+            {myRole === 'owner' && (
+              <button onClick={() => setShowDelete(true)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-coral bg-ink-900 border border-coral/30 hover:bg-coral/10 rounded-lg transition-colors">
+                <i className="fa-solid fa-trash-can text-xs"></i>
+                Delete
+              </button>
+            )}
             <button onClick={() => setShowCreate(true)}
               className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-ink-950 bg-gold hover:bg-gold-hover rounded-lg transition-colors">
               <i className="fa-solid fa-plus text-xs"></i>
@@ -349,6 +373,15 @@ export default function ProjectPage() {
           <AITaskGenerator projectId={id} members={members} onTasksCreated={handleAITasksCreated} onClose={() => setShowAI(false)} />
         )}
       </div>
+
+      <ConfirmDialog
+        open={showDelete}
+        title="Delete project?"
+        message={`This will permanently delete "${project.name}" along with all of its tasks and activity. This action cannot be undone.`}
+        confirmLabel={deleting ? 'Deleting...' : 'Delete project'}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDelete(false)}
+      />
     </div>
   );
 }

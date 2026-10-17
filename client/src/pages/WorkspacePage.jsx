@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import Chat from '../components/Chat';
 import Presence from '../components/Presence';
 import DocumentList from '../components/DocumentList';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function WorkspacePage() {
   const { user } = useAuth();
   const { id } = useParams();
+  const navigate = useNavigate();
   const [workspace, setWorkspace] = useState(null);
   const [projects, setProjects] = useState([]);
   const [myRole, setMyRole] = useState(null);
@@ -17,6 +19,8 @@ export default function WorkspacePage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [creating, setCreating] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => { fetchData(); }, [id]);
@@ -68,6 +72,19 @@ export default function WorkspacePage() {
     }
   };
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const orgId = workspace.organization?._id || workspace.organization;
+      await api.delete(`/workspaces/${id}`);
+      navigate(orgId ? `/organizations/${orgId}` : '/dashboard');
+    } catch (err) {
+      setError(err.message);
+      setShowDelete(false);
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
@@ -109,13 +126,22 @@ export default function WorkspacePage() {
             <h1 className="text-[26px] leading-tight text-white font-heading tracking-tight">{workspace.name}</h1>
             {workspace.description && <p className="text-gray-400 mt-2">{workspace.description}</p>}
           </div>
-          {(myRole === 'owner' || myRole === 'admin') && (
-            <button onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-ink-950 bg-gold hover:bg-gold-hover rounded-lg transition-colors">
-              <i className="fa-solid fa-plus text-xs"></i>
-              New Project
-            </button>
-          )}
+          <div className="flex flex-wrap items-center gap-3">
+            {myRole === 'owner' && (
+              <button onClick={() => setShowDelete(true)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-coral border border-coral/30 hover:bg-coral/10 rounded-lg transition-colors">
+                <i className="fa-solid fa-trash-can text-xs"></i>
+                Delete
+              </button>
+            )}
+            {(myRole === 'owner' || myRole === 'admin') && (
+              <button onClick={() => setShowCreate(true)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-ink-950 bg-gold hover:bg-gold-hover rounded-lg transition-colors">
+                <i className="fa-solid fa-plus text-xs"></i>
+                New Project
+              </button>
+            )}
+          </div>
         </div>
 
         {workspace.organization && (
@@ -226,6 +252,15 @@ export default function WorkspacePage() {
           <Chat workspaceId={id} />
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showDelete}
+        title="Delete workspace?"
+        message={`This will permanently delete "${workspace.name}" along with its projects, documents, tasks and chat. This action cannot be undone.`}
+        confirmLabel={deleting ? 'Deleting...' : 'Delete workspace'}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDelete(false)}
+      />
     </div>
   );
 }

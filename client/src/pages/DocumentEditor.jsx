@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
+import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import AIChatPanel from '../components/AIChatPanel';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 function stripInlineColors(html) {
   const doc = new DOMParser().parseFromString(html || '', 'text/html');
@@ -39,12 +41,17 @@ const TOOLBAR_BUTTONS = [  { cmd: 'bold', label: 'B', style: 'font-bold' },
 
 export default function DocumentEditor() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { socket } = useSocket();
   const [doc, setDoc] = useState(null);
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showAI, setShowAI] = useState(false);
+  const [myRole, setMyRole] = useState(null);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const editorRef = useRef(null);
   const saveTimeoutRef = useRef(null);
   const remoteUpdate = useRef(false);
@@ -60,8 +67,19 @@ export default function DocumentEditor() {
       setTitle(data.title);
       if (editorRef.current) editorRef.current.innerHTML = stripInlineColors(data.content);
       setLoading(false);
+
+      const wsId = data.workspace?._id || data.workspace;
+      if (wsId) {
+        api.get(`/workspaces/${wsId}`)
+          .then((ws) => api.get(`/orgs/${ws.organization?._id || ws.organization}`))
+          .then((org) => {
+            const member = org.members.find((m) => m.user._id === user?.id);
+            setMyRole(member?.role || null);
+          })
+          .catch(() => {});
+      }
     }).catch(() => setLoading(false));
-  }, [id]);
+  }, [id, user?.id]);
 
   useEffect(() => {
     const s = socketRef.current;
@@ -143,6 +161,18 @@ export default function DocumentEditor() {
     }
   }
 
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      const wsId = doc.workspace?._id || doc.workspace;
+      await api.delete(`/documents/${doc._id}`);
+      navigate(wsId ? `/workspaces/${wsId}` : '/dashboard');
+    } catch (err) {
+      setDeleting(false);
+      setShowDelete(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
@@ -193,6 +223,13 @@ export default function DocumentEditor() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 Download PDF
               </button>
+              {(myRole === 'owner' || myRole === 'admin') && (
+                <button onClick={() => setShowDelete(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm border border-coral/30 bg-ink-900 text-coral hover:bg-coral/10 transition-all">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  Delete
+                </button>
+              )}
             </div>
           </div>
 
@@ -234,6 +271,15 @@ export default function DocumentEditor() {
       {showAI && (
         <AIChatPanel getContext={() => editorRef.current?.innerText || ''} />
       )}
+
+      <ConfirmDialog
+        open={showDelete}
+        title="Delete document?"
+        message={`This will permanently delete "${title || 'this document'}" and its content. This action cannot be undone.`}
+        confirmLabel={deleting ? 'Deleting...' : 'Delete document'}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDelete(false)}
+      />
     </div>
   );
 }

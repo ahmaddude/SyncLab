@@ -3,6 +3,7 @@ const Workspace = require('../models/Workspace');
 const Organization = require('../models/Organization');
 const { getUserRole } = require('../middleware/permissions');
 const { emitToOrgMembers } = require('../socket');
+const { deleteProjectsCascade } = require('../utils/cascadeDeletes');
 
 const checkWorkspaceAccess = async (workspaceId, userId) => {
   const workspace = await Workspace.findById(workspaceId);
@@ -156,7 +157,7 @@ exports.deleteProject = async (req, res) => {
       return res.status(403).json({ message: 'Only the owner can delete projects' });
     }
 
-    await project.deleteOne();
+    await deleteProjectsCascade([project._id]);
     emitToOrgMembers(workspace.organization, 'sidebar:refresh');
     res.json({ message: 'Project deleted' });
   } catch (error) {

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const ACTIVITY_ICONS = {
   task_created: { icon: 'fa-solid fa-code-branch text-xs', cls: 'bg-gold/10 text-gold' },
@@ -40,6 +41,7 @@ function getTimeAgo(date) {
 export default function OrgPage() {
   const { user } = useAuth();
   const { id } = useParams();
+  const navigate = useNavigate();
   const [org, setOrg] = useState(null);
   const [workspaces, setWorkspaces] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -51,6 +53,9 @@ export default function OrgPage() {
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviting, setInviting] = useState(false);
+  const [showDeleteOrg, setShowDeleteOrg] = useState(false);
+  const [deletingOrg, setDeletingOrg] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => { fetchData(); }, [id]);
@@ -99,6 +104,30 @@ export default function OrgPage() {
     }
   };
 
+  const handleDeleteOrg = async () => {
+    setDeletingOrg(true);
+    try {
+      await api.delete(`/orgs/${id}`);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message);
+      setShowDeleteOrg(false);
+      setDeletingOrg(false);
+    }
+  };
+
+  const handleRemoveMember = async () => {
+    if (!removeTarget) return;
+    try {
+      await api.delete(`/orgs/${id}/members/${removeTarget._id}`);
+      setRemoveTarget(null);
+      fetchData();
+    } catch (err) {
+      setError(err.message);
+      setRemoveTarget(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
@@ -144,6 +173,15 @@ export default function OrgPage() {
               >
                 <i className="fa-solid fa-user-plus text-xs"></i>
                 Invite
+              </button>
+            )}
+            {myRole === 'owner' && (
+              <button
+                onClick={() => setShowDeleteOrg(true)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-coral border border-coral/30 hover:bg-coral/10 rounded-lg transition-colors"
+              >
+                <i className="fa-solid fa-trash-can text-xs"></i>
+                Delete
               </button>
             )}
           </div>
@@ -346,14 +384,7 @@ export default function OrgPage() {
                           )}
                           {canRemove && m.role !== 'owner' && (
                             <button
-                              onClick={async () => {
-                                try {
-                                  await api.delete(`/orgs/${id}/members/${m.user._id}`);
-                                  fetchData();
-                                } catch (err) {
-                                  setError(err.message);
-                                }
-                              }}
+                              onClick={() => setRemoveTarget(m.user)}
                               className="text-gray-500 hover:text-coral transition-colors p-1"
                               title="Remove member"
                             >
@@ -410,6 +441,24 @@ export default function OrgPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showDeleteOrg}
+        title="Delete organization?"
+        message={`This will permanently delete "${org.name}" along with all of its workspaces, projects, documents and tasks. This action cannot be undone.`}
+        confirmLabel={deletingOrg ? 'Deleting...' : 'Delete organization'}
+        onConfirm={handleDeleteOrg}
+        onCancel={() => setShowDeleteOrg(false)}
+      />
+
+      <ConfirmDialog
+        open={!!removeTarget}
+        title="Remove member?"
+        message={`Remove ${removeTarget?.name || 'this member'} from ${org.name}? They will lose access to all workspaces and projects in this organization.`}
+        confirmLabel="Remove"
+        onConfirm={handleRemoveMember}
+        onCancel={() => setRemoveTarget(null)}
+      />
     </div>
   );
 }

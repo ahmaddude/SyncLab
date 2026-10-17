@@ -1,6 +1,8 @@
 const Organization = require('../models/Organization');
+const Workspace = require('../models/Workspace');
 const { getUserRole } = require('../middleware/permissions');
 const { emitToUsers } = require('../socket');
+const { deleteWorkspacesCascade } = require('../utils/cascadeDeletes');
 
 exports.createOrg = async (req, res) => {
   try {
@@ -85,7 +87,12 @@ exports.deleteOrg = async (req, res) => {
     const role = await getUserRole(req.params.id, req.user._id);
     if (role !== 'owner') return res.status(403).json({ message: 'Only the owner can delete the organization' });
 
+    const memberIds = org.members.map((m) => m.user);
+    const workspaces = await Workspace.find({ organization: org._id }).select('_id');
+    await deleteWorkspacesCascade(workspaces.map((w) => w._id));
     await org.deleteOne();
+
+    emitToUsers(memberIds, 'sidebar:refresh');
     res.json({ message: 'Organization deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -151,6 +158,8 @@ exports.removeMember = async (req, res) => {
 
     org.members.pull({ user: memberId });
     await org.save();
+
+    emitToUsers(memberId, 'sidebar:refresh');
 
     const updated = await Organization.findById(org._id).populate('members.user', 'name email avatar');
     res.json(updated);
